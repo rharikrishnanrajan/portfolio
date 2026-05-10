@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:animate_do/animate_do.dart';
 import '../theme/app_colors.dart';
@@ -7,6 +8,14 @@ import 'hover_widgets.dart';
 
 class ContactSection extends StatelessWidget {
   const ContactSection({super.key});
+
+  // ── Read URLs from .env (with safe fallbacks) ──────────────────────────────
+  static String get _email =>
+      dotenv.env['CONTACT_EMAIL'] ?? 'contact@example.com';
+  static String get _githubUrl =>
+      dotenv.env['GITHUB_URL'] ?? 'https://github.com';
+  static String get _linkedinUrl =>
+      dotenv.env['LINKEDIN_URL'] ?? 'https://linkedin.com';
 
   Future<void> _launchUrl(String urlString) async {
     final Uri url = Uri.parse(urlString);
@@ -19,6 +28,14 @@ class ContactSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final c = AppColorScheme.of(context);
+
+    // Extract display-friendly labels from the env values
+    final githubHandle = Uri.parse(_githubUrl).pathSegments
+        .where((s) => s.isNotEmpty)
+        .join('/');
+    final linkedinHandle = Uri.parse(_linkedinUrl).pathSegments
+        .where((s) => s.isNotEmpty)
+        .join('/');
 
     return FadeInUp(
       duration: const Duration(milliseconds: 800),
@@ -49,8 +66,7 @@ class ContactSection extends StatelessWidget {
             const SizedBox(height: 50),
             HoverElevatedButton(
               label: '  Say Hello  ',
-              onPressed: () =>
-                  _launchUrl('mailto:rharikrishnanrajan@zohomail.in'),
+              onPressed: () => _launchUrl('mailto:$_email'),
             ),
             const SizedBox(height: 60),
             FadeInUp(
@@ -60,17 +76,14 @@ class ContactSection extends StatelessWidget {
                 children: [
                   HoverSocialButton(
                     iconData: FontAwesomeIcons.github,
-                    tooltip: 'GitHub — github.com/rharikrishnanrajan',
-                    onTap: () =>
-                        _launchUrl('https://github.com/rharikrishnanrajan'),
+                    tooltip: 'GitHub — $githubHandle',
+                    onTap: () => _launchUrl(_githubUrl),
                   ),
                   const SizedBox(width: 24),
                   HoverSocialButton(
                     iconData: FontAwesomeIcons.linkedin,
-                    tooltip:
-                        'LinkedIn — linkedin.com/in/rharikrishnanrajan',
-                    onTap: () => _launchUrl(
-                        'https://www.linkedin.com/in/rharikrishnanrajan'),
+                    tooltip: 'LinkedIn — $linkedinHandle',
+                    onTap: () => _launchUrl(_linkedinUrl),
                   ),
                 ],
               ),
