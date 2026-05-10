@@ -43,3 +43,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ─── Security: Never commit secrets or private assets ───────────────────────
+# Environment variables (API keys, tokens, etc.)
+.env
+.env.*
+!.env.example
+
+# Private/sensitive assets that should stay local only
+assets/private_data/
