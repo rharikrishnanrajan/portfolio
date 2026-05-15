@@ -157,9 +157,14 @@ class _MagneticWrapperState extends State<MagneticWrapper> {
 class HoverNavButton extends StatefulWidget {
   final String title;
   final VoidCallback onPressed;
+  final bool isActive;
 
-  const HoverNavButton(
-      {super.key, required this.title, required this.onPressed});
+  const HoverNavButton({
+    super.key,
+    required this.title,
+    required this.onPressed,
+    this.isActive = false,
+  });
 
   @override
   State<HoverNavButton> createState() => _HoverNavButtonState();
@@ -172,6 +177,8 @@ class _HoverNavButtonState extends State<HoverNavButton> {
   @override
   Widget build(BuildContext context) {
     final c = AppColorScheme.of(context);
+    final bool active = widget.isActive || _hovered;
+
     return MagneticWrapper(
       strength: 6,
       child: MouseRegion(
@@ -191,7 +198,7 @@ class _HoverNavButtonState extends State<HoverNavButton> {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: _hovered ? c.accent : Colors.transparent,
+                    color: active ? c.accent : Colors.transparent,
                     width: 1.5,
                   ),
                 ),
@@ -199,9 +206,10 @@ class _HoverNavButtonState extends State<HoverNavButton> {
               child: AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),
                 style: TextStyle(
-                  color: _hovered ? c.accent : c.text,
+                  color: active ? c.accent : c.text,
                   fontFamily: 'Roboto Mono',
                   fontSize: 13,
+                  fontWeight: widget.isActive ? FontWeight.bold : FontWeight.normal,
                 ),
                 child: Text(widget.title),
               ),

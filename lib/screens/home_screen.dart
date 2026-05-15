@@ -27,6 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _certsKey = GlobalKey();
   final GlobalKey _contactKey = GlobalKey();
 
+  String _activeSection = '';
+
   @override
   void initState() {
     super.initState();
@@ -37,8 +39,49 @@ class _HomeScreenState extends State<HomeScreen> {
           _maxScroll = _scrollController.position.maxScrollExtent;
           if (_maxScroll == 0) _maxScroll = 1;
         });
+        _updateActiveSection();
       }
     });
+  }
+
+  void _updateActiveSection() {
+    if (_scrollOffset < 200) {
+      if (_activeSection != '') setState(() => _activeSection = '');
+      return;
+    }
+
+    final Map<String, GlobalKey> keys = {
+      'about': _aboutKey,
+      'skills': _skillsKey,
+      'projects': _projectsKey,
+      'certs': _certsKey,
+      'contact': _contactKey,
+    };
+
+    String closest = '';
+    double minDistance = double.infinity;
+
+    for (var entry in keys.entries) {
+      final context = entry.value.currentContext;
+      if (context != null) {
+        final box = context.findRenderObject() as RenderBox?;
+        if (box != null) {
+          final offset = box.localToGlobal(Offset.zero).dy;
+          // We consider a section active if its top is near the viewport top (y=100)
+          final distance = (offset - 100).abs();
+          if (distance < minDistance) {
+            minDistance = distance;
+            closest = entry.key;
+          }
+        }
+      }
+    }
+
+    if (closest != _activeSection) {
+      setState(() {
+        _activeSection = closest;
+      });
+    }
   }
 
   @override
@@ -102,22 +145,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 300),
-                          style: TextStyle(
-                            color: c.accent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: _isScrolled ? 17 : 21,
-                            fontFamily: 'Roboto Mono',
-                            shadows: _isScrolled
-                                ? [
-                                    Shadow(
-                                        color: c.accent.withValues(alpha: 0.4),
-                                        blurRadius: 10)
-                                  ]
-                                : [],
+                        GestureDetector(
+                          onTap: () {
+                            _scrollController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 800),
+                              curve: Curves.easeInOutCubic,
+                            );
+                            setState(() => _activeSection = '');
+                          },
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 300),
+                              style: TextStyle(
+                                color: c.accent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: _isScrolled ? 17 : 21,
+                                fontFamily: 'Roboto Mono',
+                                shadows: _isScrolled
+                                    ? [
+                                        Shadow(
+                                            color: c.accent.withValues(alpha: 0.4),
+                                            blurRadius: 10)
+                                      ]
+                                    : [],
+                              ),
+                              child: const Text('Harikrishnan Portfolio'),
+                            ),
                           ),
-                          child: const Text('Harikrishnan Portfolio'),
                         ),
                         const Spacer(),
                         if (isMobile) ...[
@@ -126,20 +182,30 @@ class _HomeScreenState extends State<HomeScreen> {
                           _buildMobileMenu(c),
                         ] else ...[
                           HoverNavButton(
-                              title: 'About',
-                              onPressed: () => _scrollToSection(_aboutKey)),
+                            title: 'About',
+                            onPressed: () => _scrollToSection(_aboutKey),
+                            isActive: _activeSection == 'about',
+                          ),
                           HoverNavButton(
-                              title: 'Skills',
-                              onPressed: () => _scrollToSection(_skillsKey)),
+                            title: 'Skills',
+                            onPressed: () => _scrollToSection(_skillsKey),
+                            isActive: _activeSection == 'skills',
+                          ),
                           HoverNavButton(
-                              title: 'Projects',
-                              onPressed: () => _scrollToSection(_projectsKey)),
+                            title: 'Projects',
+                            onPressed: () => _scrollToSection(_projectsKey),
+                            isActive: _activeSection == 'projects',
+                          ),
                           HoverNavButton(
-                              title: 'Certifications',
-                              onPressed: () => _scrollToSection(_certsKey)),
+                            title: 'Certifications',
+                            onPressed: () => _scrollToSection(_certsKey),
+                            isActive: _activeSection == 'certs',
+                          ),
                           HoverNavButton(
-                              title: 'Contact',
-                              onPressed: () => _scrollToSection(_contactKey)),
+                            title: 'Contact',
+                            onPressed: () => _scrollToSection(_contactKey),
+                            isActive: _activeSection == 'contact',
+                          ),
                           const SizedBox(width: 16),
                           HoverElevatedButton(label: 'Resume', onPressed: _openResume),
                           const SizedBox(width: 12),
