@@ -1,28 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../theme/app_colors.dart';
 import 'hover_widgets.dart';
 
 class CertificationsSection extends StatelessWidget {
   const CertificationsSection({super.key});
 
-  static const List<Map<String, String>> _certs = [
+  List<Map<String, String>> get _certs => [
     {
       'title': 'Fundamentals of Agile Methodology with DevOps Integration',
       'issuer': 'L&T EduTech',
       'period': 'Aug 2023 – Nov 2023',
+      'link': dotenv.get('CERT_AGILE_URL', fallback: ''),
     },
     {
       'title': 'DevOps and Cloud',
       'issuer': 'L&T EduTech',
       'period': 'Jan 2024 – Apr 2024',
+      'link': dotenv.get('CERT_DEVOPS_CLOUD_URL', fallback: ''),
     },
     {
       'title': 'DevOps Container Services',
       'issuer': 'L&T EduTech',
       'period': 'Jun 2024 – Oct 2024',
+      'link': dotenv.get('CERT_CONTAINER_URL', fallback: ''),
     },
   ];
+
+  Future<void> _launchURL(String url) async {
+    if (url.isEmpty) return;
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(
+      uri,
+      webOnlyWindowName: '_blank',
+    )) {
+      debugPrint('Could not launch $url');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,54 +77,65 @@ class CertificationsSection extends StatelessWidget {
                 duration: const Duration(milliseconds: 600),
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: HoverCard(
-                    borderColor: c.accent,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: c.accent.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: c.accent.withValues(alpha: 0.3)),
-                            ),
-                            // ✅ Fixed: removed const so color resolves at runtime
-                            child: Icon(Icons.verified_rounded,
-                                color: c.accent, size: 22),
-                          ),
-                          const SizedBox(width: 18),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  cert['title']!,
-                                  style: textTheme.bodyLarge?.copyWith(
-                                    color: c.text,
-                                    fontWeight: FontWeight.w600,
+                  child: GestureDetector(
+                    onTap: () => _launchURL(cert['link']!),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: HoverCard(
+                        borderColor: c.accent,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: c.accent.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: c.accent.withValues(alpha: 0.3),
                                   ),
                                 ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  '${cert['issuer']} • ${cert['period']}',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: c.accent,
-                                    fontSize: 12,
-                                    fontFamily: 'Roboto Mono',
-                                  ),
+                                child: Icon(
+                                  Icons.verified_rounded,
+                                  color: c.accent,
+                                  size: 22,
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 18),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      cert['title']!,
+                                      style: textTheme.bodyLarge?.copyWith(
+                                        color: c.text,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      '${cert['issuer']} • ${cert['period']}',
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: c.accent,
+                                        fontSize: 12,
+                                        fontFamily: 'Roboto Mono',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.open_in_new_rounded,
+                                color: c.textSecondary,
+                                size: 18,
+                              ),
+                            ],
                           ),
-                          // ✅ Fixed: removed const so color resolves at runtime
-                          Icon(Icons.open_in_new_rounded,
-                              color: c.textSecondary, size: 18),
-                        ],
+                        ),
                       ),
                     ),
                   ),

@@ -436,7 +436,7 @@ class _ThemeToggleButtonState extends State<ThemeToggleButton>
                       color: c.accent.withValues(alpha: 0.3), width: 1.5),
                 ),
                 child: Icon(
-                  isDark ? Icons.wb_sunny_rounded : Icons.nightlight_round,
+                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                   color: c.accent,
                   size: 20,
                 ),

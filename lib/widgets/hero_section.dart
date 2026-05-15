@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:animate_do/animate_do.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_colors.dart';
 import 'hover_widgets.dart';
 import 'three_d_widgets.dart';
@@ -136,40 +137,48 @@ class _HeroSectionState extends State<HeroSection>
             child: _AmbientShapes(accent: c.accent),
           ),
 
-          // ── Main content ─────────────────────────────────────────────
-          Container(
-            constraints: const BoxConstraints(minHeight: 680),
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 24 : 100,
-              vertical: 130,
-            ),
-            child: isMobile
-                ? _buildTextContent(textTheme, c, isMobile)
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                          flex: 3,
-                          child: _buildTextContent(textTheme, c, isMobile)),
-                      const SizedBox(width: 40),
-                      // ── 3-D Orbit on the right ───────────────────
-                      Expanded(
-                        flex: 2,
-                        child: TweenAnimationBuilder<Offset>(
-                          tween: Tween(
-                              begin: Offset.zero,
-                              end: Offset(
-                                  _mouseOffset.dx * -12, _mouseOffset.dy * -12)),
-                          duration: const Duration(milliseconds: 300),
-                          builder: (_, off, child) => Transform.translate(
-                            offset: off,
-                            child: child,
+          // ── Main content + Ticker ─────────────────────────────────────
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                constraints: const BoxConstraints(minHeight: 680),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 24 : 100,
+                  vertical: 130,
+                ),
+                child: isMobile
+                    ? _buildTextContent(textTheme, c, isMobile)
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                              flex: 3,
+                              child:
+                                  _buildTextContent(textTheme, c, isMobile)),
+                          const SizedBox(width: 40),
+                          Expanded(
+                            flex: 2,
+                            child: TweenAnimationBuilder<Offset>(
+                              tween: Tween(
+                                  begin: Offset.zero,
+                                  end: Offset(_mouseOffset.dx * -12,
+                                      _mouseOffset.dy * -12)),
+                              duration: const Duration(milliseconds: 300),
+                              builder: (_, off, child) => Transform.translate(
+                                offset: off,
+                                child: child,
+                              ),
+                              child: const DevOpsOrbit(size: 340),
+                            ),
                           ),
-                          child: const DevOpsOrbit(size: 340),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+              ),
+              // ── Skill Ticker ─────────────────────────────────────────
+              const _SkillTickerRow(),
+              const SizedBox(height: 32),
+            ],
           ),
         ],
       ),
@@ -452,3 +461,151 @@ class _ParticlePainter extends CustomPainter {
   bool shouldRepaint(_ParticlePainter old) =>
       old.progress != progress || old.accentColor != accentColor;
 }
+
+// ── Skill Ticker Row ──────────────────────────────────────────────────────────
+class _SkillTickerRow extends StatefulWidget {
+  const _SkillTickerRow();
+
+  @override
+  State<_SkillTickerRow> createState() => _SkillTickerRowState();
+}
+
+class _SkillTickerRowState extends State<_SkillTickerRow>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  // Total width per chip including horizontal margins (6+6=12)
+  static const double _itemTotalWidth = 130.0 + 12.0;
+
+  // Each entry: label + widget builder for its icon
+  static final List<(String, Widget Function(Color))> _skills = [
+    ('AWS',       (c) => FaIcon(FontAwesomeIcons.aws,    color: c, size: 16)),
+    ('Docker',    (c) => FaIcon(FontAwesomeIcons.docker, color: c, size: 16)),
+    ('Linux',     (c) => FaIcon(FontAwesomeIcons.linux,  color: c, size: 16)),
+    ('Git',       (c) => FaIcon(FontAwesomeIcons.git,    color: c, size: 16)),
+    ('GitHub',    (c) => FaIcon(FontAwesomeIcons.github, color: c, size: 16)),
+    ('Jenkins',   (c) => Icon(Icons.settings_backup_restore_rounded, color: c, size: 16)),
+    ('SonarQube', (c) => Icon(Icons.shield_rounded,             color: c, size: 16)),
+    ('EC2',       (c) => Icon(Icons.cloud_queue_rounded,         color: c, size: 16)),
+    ('ECS',       (c) => Icon(Icons.layers_rounded,              color: c, size: 16)),
+    ('Route 53',  (c) => Icon(Icons.dns_rounded,                 color: c, size: 16)),
+    ('IAM',       (c) => Icon(Icons.admin_panel_settings_rounded, color: c, size: 16)),
+    ('Ubuntu',    (c) => Icon(Icons.terminal_rounded,            color: c, size: 16)),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 20),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColorScheme.of(context);
+    // One full copy width (used as the loop distance)
+    final singleCopyWidth = _skills.length * _itemTotalWidth;
+    // Three copies so there's always content filling the screen on repeat
+    final allItems = [..._skills, ..._skills, ..._skills];
+    final chips = allItems.map((s) => _buildSkillChip(s.$1, s.$2, c)).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Divider with label
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Container(height: 1, width: 32, color: c.accent.withValues(alpha: 0.4)),
+              const SizedBox(width: 10),
+              Text(
+                'TECH STACK',
+                style: TextStyle(
+                  color: c.textSecondary.withValues(alpha: 0.6),
+                  fontSize: 11,
+                  fontFamily: 'Roboto Mono',
+                  letterSpacing: 2.5,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Container(height: 1, color: c.accent.withValues(alpha: 0.15))),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Infinite ticker — ClipRect clips overflow, OverflowBox frees Row width
+        SizedBox(
+          height: 56,
+          child: ClipRect(
+            child: AnimatedBuilder(
+              animation: _ctrl,
+              builder: (context, child) => Transform.translate(
+                offset: Offset(-(_ctrl.value * singleCopyWidth), 0),
+                child: child,
+              ),
+              child: OverflowBox(
+                maxWidth: double.infinity,
+                alignment: Alignment.centerLeft,
+                child: Row(mainAxisSize: MainAxisSize.min, children: chips),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _buildSkillChip(
+    String label,
+    Widget Function(Color) iconBuilder,
+    AppColorScheme c,
+  ) {
+    return Container(
+      width: 130.0,
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: c.secondary,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: c.accent.withValues(alpha: 0.18), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: c.accent.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          iconBuilder(c.accent),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: c.text,
+                fontSize: 12,
+                fontFamily: 'Roboto Mono',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
