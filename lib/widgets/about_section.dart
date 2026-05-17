@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../theme/app_colors.dart';
 
 class AboutSection extends StatelessWidget {
@@ -129,9 +130,13 @@ class _HoverImageState extends State<_HoverImage>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
-    _tilt = Tween<double>(begin: 0, end: 0.05).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _tilt = Tween<double>(
+      begin: 0,
+      end: 0.05,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -172,15 +177,12 @@ class _HoverImageState extends State<_HoverImage>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: _hovered
-                  ? c.accent
-                  : c.accent.withValues(alpha: 0.5),
+              color: _hovered ? c.accent : c.accent.withValues(alpha: 0.5),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color:
-                    c.accent.withValues(alpha: _hovered ? 0.3 : 0.1),
+                color: c.accent.withValues(alpha: _hovered ? 0.3 : 0.1),
                 blurRadius: _hovered ? 30 : 15,
                 spreadRadius: _hovered ? 3 : 0,
                 offset: const Offset(0, 8),
@@ -189,7 +191,7 @@ class _HoverImageState extends State<_HoverImage>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset('images/img1.jpg', fit: BoxFit.cover),
+            child: Image.network(dotenv.env['ABOUT_IMAGE_URL'] ?? '', fit: BoxFit.cover),
           ),
         ),
       ),
