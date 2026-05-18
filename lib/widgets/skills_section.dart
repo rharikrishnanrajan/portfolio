@@ -1,55 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import '../theme/app_colors.dart';
+import '../services/supabase_service.dart';
 import 'animated_widgets.dart';
 
-class SkillsSection extends StatelessWidget {
+class SkillsSection extends StatefulWidget {
   const SkillsSection({super.key});
 
-  static const List<Map<String, dynamic>> _skillCategories = [
+  @override
+  State<SkillsSection> createState() => _SkillsSectionState();
+}
+
+class _SkillsSectionState extends State<SkillsSection> {
+  static const List<Map<String, dynamic>> _defaultSkillCategories = [
     {
       'category': 'Cloud Platforms (AWS)',
-      'icon': Icons.cloud_queue_rounded,
+      'icon': 'cloud_queue_rounded',
       'skills': ['EC2', 'ECR', 'ECS', 'Route 53', 'IAM', 'SSM'],
       'progress': 0.88,
-      'color': Color(0xFF2997FF),
+      'color': '0xFF2997FF',
     },
     {
       'category': 'Containerization',
-      'icon': Icons.layers_rounded,
+      'icon': 'layers_rounded',
       'skills': ['Docker', 'Docker Swarm', 'AWS ECS (Fargate)'],
       'progress': 0.92,
-      'color': Color(0xFF00D4FF),
+      'color': '0xFF00D4FF',
     },
     {
       'category': 'CI/CD Tools',
-      'icon': Icons.settings_backup_restore_rounded,
+      'icon': 'settings_backup_restore_rounded',
       'skills': ['Jenkins', 'Pipeline-as-Code', 'Jenkinsfile'],
       'progress': 0.85,
-      'color': Color(0xFF5E5CE6),
+      'color': '0xFF5E5CE6',
     },
     {
       'category': 'Security & Quality',
-      'icon': Icons.security_rounded,
+      'icon': 'security_rounded',
       'skills': ['SonarQube'],
       'progress': 0.75,
-      'color': Color(0xFF30D158),
+      'color': '0xFF30D158',
     },
     {
       'category': 'Version Control',
-      'icon': Icons.fork_right_rounded,
+      'icon': 'fork_right_rounded',
       'skills': ['Git', 'GitHub'],
       'progress': 0.90,
-      'color': Color(0xFFFF9F0A),
+      'color': '0xFFFF9F0A',
     },
     {
       'category': 'Operating Systems',
-      'icon': Icons.terminal_rounded,
+      'icon': 'terminal_rounded',
       'skills': ['Linux', 'Amazon Linux', 'Ubuntu'],
       'progress': 0.85,
-      'color': Color(0xFFFF453A),
+      'color': '0xFFFF453A',
     },
   ];
+
+  List<Map<String, dynamic>> _skillCategories = _defaultSkillCategories;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSkills();
+  }
+
+  Future<void> _loadSkills() async {
+    final data = await SupabaseService.instance.getSkillsData();
+    if (data.isNotEmpty && mounted) {
+      setState(() => _skillCategories = data);
+    }
+  }
+
+  /// Maps icon name strings to IconData for Supabase-sourced data
+  static IconData _resolveIcon(dynamic iconValue) {
+    if (iconValue is IconData) return iconValue;
+    final name = iconValue?.toString() ?? '';
+    switch (name) {
+      case 'cloud_queue_rounded': return Icons.cloud_queue_rounded;
+      case 'layers_rounded': return Icons.layers_rounded;
+      case 'settings_backup_restore_rounded': return Icons.settings_backup_restore_rounded;
+      case 'security_rounded': return Icons.security_rounded;
+      case 'fork_right_rounded': return Icons.fork_right_rounded;
+      case 'terminal_rounded': return Icons.terminal_rounded;
+      case 'code_rounded': return Icons.code_rounded;
+      case 'storage_rounded': return Icons.storage_rounded;
+      case 'shield_rounded': return Icons.shield_rounded;
+      case 'build_rounded': return Icons.build_rounded;
+      default: return Icons.extension_rounded;
+    }
+  }
+
+  /// Safely parses a Color from int or hex string
+  static Color _resolveColor(dynamic colorValue) {
+    if (colorValue is Color) return colorValue;
+    if (colorValue is int) return Color(colorValue);
+    final str = colorValue?.toString() ?? '';
+    if (str.startsWith('0x') || str.startsWith('0X')) {
+      return Color(int.tryParse(str) ?? 0xFF2997FF);
+    }
+    if (str.startsWith('#')) {
+      return Color(int.tryParse('0xFF${str.substring(1)}') ?? 0xFF2997FF);
+    }
+    return const Color(0xFF2997FF);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,35 +151,29 @@ class SkillsSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 48),
-          isMobile
-              ? Column(
-                  children: _skillCategories.asMap().entries.map((e) {
-                    return ScrollReveal(
-                      delay: Duration(milliseconds: e.key * 80),
-                      child: _SkillBarCard(
-                        category: e.value['category'] as String,
-                        icon: e.value['icon'] as IconData,
-                        skills: List<String>.from(e.value['skills'] as List),
-                        progress: e.value['progress'] as double,
-                        barColor: e.value['color'] as Color,
-                      ),
-                    );
-                  }).toList(),
-                )
-              : Column(
-                  children: _skillCategories.asMap().entries.map((e) {
-                    return ScrollReveal(
-                      delay: Duration(milliseconds: e.key * 80),
-                      child: _SkillBarCard(
-                        category: e.value['category'] as String,
-                        icon: e.value['icon'] as IconData,
-                        skills: List<String>.from(e.value['skills'] as List),
-                        progress: e.value['progress'] as double,
-                        barColor: e.value['color'] as Color,
-                      ),
-                    );
-                  }).toList(),
+          Column(
+            children: _skillCategories.asMap().entries.map((e) {
+              final cat = e.value;
+              final skills = cat['skills'];
+              final skillList = skills is List
+                  ? skills.map((s) => s.toString()).toList()
+                  : <String>[];
+              final progress = (cat['progress'] is num)
+                  ? (cat['progress'] as num).toDouble()
+                  : double.tryParse(cat['progress']?.toString() ?? '0') ?? 0.0;
+
+              return ScrollReveal(
+                delay: Duration(milliseconds: e.key * 80),
+                child: _SkillBarCard(
+                  category: cat['category']?.toString() ?? '',
+                  icon: _resolveIcon(cat['icon']),
+                  skills: skillList,
+                  progress: progress,
+                  barColor: _resolveColor(cat['color']),
                 ),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
@@ -222,13 +270,11 @@ class _SkillBarCardState extends State<_SkillBarCard>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header row ────────────────────────────────────────────
               Row(
                 children: [
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
-                    width: 42,
-                    height: 42,
+                    width: 42, height: 42,
                     decoration: BoxDecoration(
                       color: widget.barColor.withValues(alpha: _hovered ? 0.2 : 0.12),
                       borderRadius: BorderRadius.circular(10),
@@ -240,47 +286,26 @@ class _SkillBarCardState extends State<_SkillBarCard>
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Text(
-                      widget.category,
-                      style: TextStyle(
-                        color: c.text,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
+                    child: Text(widget.category, style: TextStyle(
+                      color: c.text, fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.3,
+                    )),
                   ),
-                  // Animated percentage counter
                   AnimatedBuilder(
                     animation: _fillAnim,
                     builder: (_, child) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: widget.barColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            color: widget.barColor.withValues(alpha: 0.35)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: widget.barColor.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                          ),
-                        ],
+                        border: Border.all(color: widget.barColor.withValues(alpha: 0.35)),
+                        boxShadow: [BoxShadow(color: widget.barColor.withValues(alpha: 0.2), blurRadius: 8)],
                       ),
                       child: Text(
                         '${(_fillAnim.value * 100).toInt()}%',
                         style: TextStyle(
-                          color: widget.barColor,
-                          fontFamily: 'Roboto Mono',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          shadows: [
-                            Shadow(
-                              color: widget.barColor.withValues(alpha: 0.5),
-                              blurRadius: 6,
-                            ),
-                          ],
+                          color: widget.barColor, fontFamily: 'Roboto Mono',
+                          fontWeight: FontWeight.bold, fontSize: 13,
+                          shadows: [Shadow(color: widget.barColor.withValues(alpha: 0.5), blurRadius: 6)],
                         ),
                       ),
                     ),
@@ -288,46 +313,32 @@ class _SkillBarCardState extends State<_SkillBarCard>
                 ],
               ),
               const SizedBox(height: 20),
-
-              // ── Animated progress bar ─────────────────────────────────
               AnimatedBuilder(
                 animation: _fillAnim,
                 builder: (_, child) => _InfographicBar(
-                  progress: _fillAnim.value,
-                  color: widget.barColor,
-                  isDark: c.isDark,
+                  progress: _fillAnim.value, color: widget.barColor, isDark: c.isDark,
                 ),
               ),
               const SizedBox(height: 14),
-
-              // ── Skill chips ──────────────────────────────────────────
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: 8, runSpacing: 8,
                 children: widget.skills.map((skill) {
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
                       color: _hovered
                           ? widget.barColor.withValues(alpha: 0.15)
                           : widget.barColor.withValues(alpha: 0.07),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: widget.barColor
-                            .withValues(alpha: _hovered ? 0.5 : 0.25),
+                        color: widget.barColor.withValues(alpha: _hovered ? 0.5 : 0.25),
                       ),
                     ),
-                    child: Text(
-                      skill,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: widget.barColor,
-                        fontFamily: 'Roboto Mono',
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    child: Text(skill, style: TextStyle(
+                      fontSize: 12, color: widget.barColor,
+                      fontFamily: 'Roboto Mono', fontWeight: FontWeight.w500,
+                    )),
                   );
                 }).toList(),
               ),
@@ -346,9 +357,7 @@ class _InfographicBar extends StatelessWidget {
   final bool isDark;
 
   const _InfographicBar({
-    required this.progress,
-    required this.color,
-    required this.isDark,
+    required this.progress, required this.color, required this.isDark,
   });
 
   @override
@@ -357,12 +366,10 @@ class _InfographicBar extends StatelessWidget {
       builder: (context, constraints) {
         final totalWidth = constraints.maxWidth;
         final fillWidth = (totalWidth * progress).clamp(0.0, totalWidth);
-
         return SizedBox(
           height: 18,
           child: Stack(
             children: [
-              // Track
               Container(
                 width: totalWidth,
                 decoration: BoxDecoration(
@@ -370,59 +377,35 @@ class _InfographicBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(9),
                 ),
               ),
-              // Segment ticks
               ...List.generate(19, (i) {
                 final x = totalWidth * (i + 1) / 20;
                 return Positioned(
-                  left: x,
-                  top: 4,
-                  bottom: 4,
+                  left: x, top: 4, bottom: 4,
                   child: Container(
                     width: 1,
-                    color: (isDark ? Colors.black : Colors.white)
-                        .withValues(alpha: 0.2),
+                    color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.2),
                   ),
                 );
               }),
-              // Filled bar with gradient
               Container(
                 width: fillWidth,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      color.withValues(alpha: 0.85),
-                      color,
-                      const Color(0xFF00D4FF),
-                    ],
-                  ),
+                  gradient: LinearGradient(colors: [
+                    color.withValues(alpha: 0.85), color, const Color(0xFF00D4FF),
+                  ]),
                   borderRadius: BorderRadius.circular(9),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.45),
-                      blurRadius: 10,
-                      spreadRadius: 0,
-                    ),
-                  ],
+                  boxShadow: [BoxShadow(color: color.withValues(alpha: 0.45), blurRadius: 10)],
                 ),
               ),
-              // Leading glow dot
               if (fillWidth > 12)
                 Positioned(
-                  left: fillWidth - 9,
-                  top: 1,
-                  bottom: 1,
+                  left: fillWidth - 9, top: 1, bottom: 1,
                   child: Container(
                     width: 16,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withValues(alpha: 0.9),
-                      boxShadow: [
-                        BoxShadow(
-                          color: color.withValues(alpha: 0.9),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
+                      boxShadow: [BoxShadow(color: color.withValues(alpha: 0.9), blurRadius: 8, spreadRadius: 2)],
                     ),
                   ),
                 ),

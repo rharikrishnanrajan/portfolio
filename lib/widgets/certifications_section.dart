@@ -3,39 +3,66 @@ import 'package:animate_do/animate_do.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../theme/app_colors.dart';
+import '../services/supabase_service.dart';
 import 'hover_widgets.dart';
 
-class CertificationsSection extends StatelessWidget {
+class CertificationsSection extends StatefulWidget {
   const CertificationsSection({super.key});
 
-  List<Map<String, String>> get _certs => [
-    {
-      'title': 'Fundamentals of Agile Methodology with DevOps Integration',
-      'issuer': 'L&T EduTech',
-      'period': 'Aug 2023 – Nov 2023',
-      'link': dotenv.get('CERT_AGILE_URL', fallback: ''),
-    },
-    {
-      'title': 'DevOps and Cloud',
-      'issuer': 'L&T EduTech',
-      'period': 'Jan 2024 – Apr 2024',
-      'link': dotenv.get('CERT_DEVOPS_CLOUD_URL', fallback: ''),
-    },
-    {
-      'title': 'DevOps Container Services',
-      'issuer': 'L&T EduTech',
-      'period': 'Jun 2024 – Oct 2024',
-      'link': dotenv.get('CERT_CONTAINER_URL', fallback: ''),
-    },
-  ];
+  @override
+  State<CertificationsSection> createState() => _CertificationsSectionState();
+}
+
+class _CertificationsSectionState extends State<CertificationsSection> {
+  List<Map<String, dynamic>> _certs = [];
+
+  /// Hardcoded fallback certificates (original data)
+  List<Map<String, String>> get _defaultCerts => [
+        {
+          'title': 'Fundamentals of Agile Methodology with DevOps Integration',
+          'issuer': 'L&T EduTech',
+          'period': 'Aug 2023 – Nov 2023',
+          'link': dotenv.get('CERT_AGILE_URL', fallback: ''),
+        },
+        {
+          'title': 'DevOps and Cloud',
+          'issuer': 'L&T EduTech',
+          'period': 'Jan 2024 – Apr 2024',
+          'link': dotenv.get('CERT_DEVOPS_CLOUD_URL', fallback: ''),
+        },
+        {
+          'title': 'DevOps Container Services',
+          'issuer': 'L&T EduTech',
+          'period': 'Jun 2024 – Oct 2024',
+          'link': dotenv.get('CERT_CONTAINER_URL', fallback: ''),
+        },
+      ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCertificates();
+  }
+
+  Future<void> _loadCertificates() async {
+    final data = await SupabaseService.instance.getCertificatesData();
+    if (mounted) {
+      setState(() {
+        if (data.isNotEmpty) {
+          _certs = data;
+        }
+      });
+    }
+  }
+
+  /// Returns either Supabase data or fallback defaults
+  List<Map<String, dynamic>> get _displayCerts =>
+      _certs.isNotEmpty ? _certs : _defaultCerts;
 
   Future<void> _launchURL(String url) async {
     if (url.isEmpty) return;
     final Uri uri = Uri.parse(url);
-    if (!await launchUrl(
-      uri,
-      webOnlyWindowName: '_blank',
-    )) {
+    if (!await launchUrl(uri, webOnlyWindowName: '_blank')) {
       debugPrint('Could not launch $url');
     }
   }
@@ -70,15 +97,16 @@ class CertificationsSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 40),
-            ..._certs.asMap().entries.map((entry) {
+            ..._displayCerts.asMap().entries.map((entry) {
               final cert = entry.value;
+              final link = (cert['link'] ?? '') as String;
               return FadeInLeft(
                 delay: Duration(milliseconds: entry.key * 150),
                 duration: const Duration(milliseconds: 600),
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: GestureDetector(
-                    onTap: () => _launchURL(cert['link']!),
+                    onTap: () => _launchURL(link),
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
                       child: HoverCard(
@@ -110,7 +138,7 @@ class CertificationsSection extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      cert['title']!,
+                                      (cert['title'] ?? '') as String,
                                       style: textTheme.bodyLarge?.copyWith(
                                         color: c.text,
                                         fontWeight: FontWeight.w600,
@@ -118,7 +146,7 @@ class CertificationsSection extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 5),
                                     Text(
-                                      '${cert['issuer']} • ${cert['period']}',
+                                      '${cert['issuer'] ?? ''} • ${cert['period'] ?? ''}',
                                       style: textTheme.bodyMedium?.copyWith(
                                         color: c.accent,
                                         fontSize: 12,

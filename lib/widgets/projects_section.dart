@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../services/supabase_service.dart';
 import 'hover_widgets.dart';
 import 'three_d_widgets.dart';
 import 'animated_widgets.dart';
 
-class ProjectsSection extends StatelessWidget {
+class ProjectsSection extends StatefulWidget {
   const ProjectsSection({super.key});
 
-  static const List<Map<String, dynamic>> _projects = [
+  @override
+  State<ProjectsSection> createState() => _ProjectsSectionState();
+}
+
+class _ProjectsSectionState extends State<ProjectsSection> {
+  // Hardcoded fallback data
+  static const List<Map<String, dynamic>> _defaultProjects = [
     {
       'title': 'Multi-Region Application Deployment with Docker & AWS Route 53',
       'type': 'Final Year Project',
@@ -18,7 +25,7 @@ class ProjectsSection extends StatelessWidget {
         '100% availability during regional failover simulation',
         'Multi-region ECR image distribution with version control',
       ],
-      'techStack': ['AWS EC2', 'ECR', 'ECS', 'Route 53', 'IAM', 'Docker', 'GitHub'],
+      'tech_stack': ['AWS EC2', 'ECR', 'ECS', 'Route 53', 'IAM', 'Docker', 'GitHub'],
     },
     {
       'title': 'Scalable Web Service Deployment using Docker Swarm',
@@ -30,7 +37,7 @@ class ProjectsSection extends StatelessWidget {
         'High availability with auto-scaling service replicas',
         'Built-in load balancing for efficient traffic distribution',
       ],
-      'techStack': ['Docker', 'Docker Swarm', 'AWS EC2', 'Amazon Linux'],
+      'tech_stack': ['Docker', 'Docker Swarm', 'AWS EC2', 'Amazon Linux'],
     },
     {
       'title': 'CI/CD Pipeline for React Application on AWS',
@@ -42,7 +49,7 @@ class ProjectsSection extends StatelessWidget {
         'Automated Docker build → tag → push to ECR pipeline',
         'Full SDLC automation with Jenkinsfile Pipeline-as-Code',
       ],
-      'techStack': ['Jenkins', 'Docker', 'Trivy', 'AWS EC2', 'ECR', 'React'],
+      'tech_stack': ['Jenkins', 'Docker', 'Trivy', 'AWS EC2', 'ECR', 'React'],
     },
     {
       'title': 'Automated Web Application Deployment with Jenkins & Docker',
@@ -54,9 +61,28 @@ class ProjectsSection extends StatelessWidget {
         'Zero manual errors with fully automated release process',
         'ECR versioning enables reliable rollbacks to stable releases',
       ],
-      'techStack': ['Jenkins', 'Docker', 'AWS EC2', 'ECR', 'Git', 'GitHub', 'React.js'],
+      'tech_stack': ['Jenkins', 'Docker', 'AWS EC2', 'ECR', 'Git', 'GitHub', 'React.js'],
     },
   ];
+
+  List<Map<String, dynamic>> _projects = _defaultProjects;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProjects();
+  }
+
+  Future<void> _loadProjects() async {
+    final data = await SupabaseService.instance.getProjectsData();
+    if (mounted) {
+      setState(() {
+        if (data.isNotEmpty) {
+          _projects = data;
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +124,6 @@ class ProjectsSection extends StatelessWidget {
                 delay: Duration(milliseconds: entry.key * 100),
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 28),
-                  // ── 3-D cursor-tracking tilt wraps each card ─────────
                   child: MouseTiltCard(
                     maxTilt: 0.06,
                     child: HoverCard(
@@ -120,6 +145,11 @@ class ProjectsSection extends StatelessWidget {
   Widget _buildContent(
       BuildContext context, Map<String, dynamic> proj, AppColorScheme c) {
     final textTheme = Theme.of(context).textTheme;
+
+    // Support both 'techStack' (old) and 'tech_stack' (Supabase column name)
+    final techStack = _getStringList(proj['tech_stack'] ?? proj['techStack']);
+    final highlights = _getStringList(proj['highlights']);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -130,7 +160,7 @@ class ProjectsSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
-            proj['type'],
+            proj['type'] ?? '',
             style: textTheme.bodyMedium?.copyWith(
               color: c.accent,
               fontSize: 11,
@@ -140,13 +170,13 @@ class ProjectsSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          proj['title'],
+          proj['title'] ?? '',
           style: textTheme.headlineMedium?.copyWith(color: c.text, fontSize: 19),
         ),
         const SizedBox(height: 10),
-        Text(proj['description'], style: textTheme.bodyMedium),
+        Text(proj['description'] ?? '', style: textTheme.bodyMedium),
         const SizedBox(height: 14),
-        ...((proj['highlights'] as List<String>).map((h) => Padding(
+        ...highlights.map((h) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,12 +190,12 @@ class ProjectsSection extends StatelessWidget {
                               height: 1.5))),
                 ],
               ),
-            ))),
+            )),
         const SizedBox(height: 16),
         Wrap(
           spacing: 10,
           runSpacing: 8,
-          children: (proj['techStack'] as List<String>).map((tech) {
+          children: techStack.map((tech) {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
@@ -181,5 +211,11 @@ class ProjectsSection extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  // Safely converts dynamic list data (Postgres array or JSON) to List<String>
+  List<String> _getStringList(dynamic raw) {
+    if (raw is List) return raw.map((e) => e.toString()).toList();
+    return [];
   }
 }

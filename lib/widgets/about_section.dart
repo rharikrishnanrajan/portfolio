@@ -2,9 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../theme/app_colors.dart';
+import '../services/supabase_service.dart';
 
-class AboutSection extends StatelessWidget {
+class AboutSection extends StatefulWidget {
   const AboutSection({super.key});
+
+  @override
+  State<AboutSection> createState() => _AboutSectionState();
+}
+
+class _AboutSectionState extends State<AboutSection> {
+  // Defaults matching the original hardcoded values
+  List<String> _paragraphs = [
+    "Hi! I'm Harikrishnan R, a passionate DevOps Engineer from India with hands-on expertise in cloud infrastructure, containerization, and CI/CD automation.",
+    'I specialize in building and scaling infrastructure on AWS — architecting multi-region deployments, automating software delivery pipelines with Jenkins, and containerizing applications with Docker and ECS Fargate.',
+    'My goal is to bridge the gap between development and operations by implementing robust DevOps practices that increase velocity, reliability, and security of software systems.',
+  ];
+  String _location = 'India';
+  String _role = 'DevOps Engineer';
+  String _certification = 'L&T EduTech Certified';
+  String _imageUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _imageUrl = dotenv.env['ABOUT_IMAGE_URL'] ?? '';
+    _loadAboutData();
+  }
+
+  Future<void> _loadAboutData() async {
+    final data = await SupabaseService.instance.getAboutData();
+    if (data != null && mounted) {
+      setState(() {
+        // paragraphs can be a Postgres text[] array or JSON array
+        final parasRaw = data['paragraphs'];
+        if (parasRaw is List && parasRaw.isNotEmpty) {
+          _paragraphs = parasRaw.map((e) => e.toString()).toList();
+        }
+        _location = data['location'] as String? ?? _location;
+        _role = data['role'] as String? ?? _role;
+        _certification = data['certification'] as String? ?? _certification;
+        final img = data['image_url'] as String?;
+        if (img != null && img.isNotEmpty) _imageUrl = img;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,28 +104,18 @@ class AboutSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Hi! I'm Harikrishnan R, a passionate DevOps Engineer from India with hands-on expertise in cloud infrastructure, containerization, and CI/CD automation.",
-          style: textTheme.bodyLarge?.copyWith(height: 1.8),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'I specialize in building and scaling infrastructure on AWS — architecting multi-region deployments, automating software delivery pipelines with Jenkins, and containerizing applications with Docker and ECS Fargate.',
-          style: textTheme.bodyLarge?.copyWith(height: 1.8),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'My goal is to bridge the gap between development and operations by implementing robust DevOps practices that increase velocity, reliability, and security of software systems.',
-          style: textTheme.bodyLarge?.copyWith(height: 1.8),
-        ),
-        const SizedBox(height: 28),
+        ..._paragraphs.map((p) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(p, style: textTheme.bodyLarge?.copyWith(height: 1.8)),
+            )),
+        const SizedBox(height: 12),
         Wrap(
           spacing: 20,
           runSpacing: 12,
           children: [
-            _buildInfoChip(Icons.location_on_rounded, 'India', c),
-            _buildInfoChip(Icons.work_rounded, 'DevOps Engineer', c),
-            _buildInfoChip(Icons.verified_rounded, 'L&T EduTech Certified', c),
+            _buildInfoChip(Icons.location_on_rounded, _location, c),
+            _buildInfoChip(Icons.work_rounded, _role, c),
+            _buildInfoChip(Icons.verified_rounded, _certification, c),
           ],
         ),
       ],
@@ -109,12 +141,13 @@ class AboutSection extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    return const Center(child: _HoverImage());
+    return Center(child: _HoverImage(imageUrl: _imageUrl));
   }
 }
 
 class _HoverImage extends StatefulWidget {
-  const _HoverImage();
+  final String imageUrl;
+  const _HoverImage({required this.imageUrl});
 
   @override
   State<_HoverImage> createState() => _HoverImageState();
@@ -133,10 +166,8 @@ class _HoverImageState extends State<_HoverImage>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _tilt = Tween<double>(
-      begin: 0,
-      end: 0.05,
-    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _tilt = Tween<double>(begin: 0, end: 0.05)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -149,14 +180,8 @@ class _HoverImageState extends State<_HoverImage>
   Widget build(BuildContext context) {
     final c = AppColorScheme.of(context);
     return MouseRegion(
-      onEnter: (_) {
-        setState(() => _hovered = true);
-        _ctrl.forward();
-      },
-      onExit: (_) {
-        setState(() => _hovered = false);
-        _ctrl.reverse();
-      },
+      onEnter: (_) { setState(() => _hovered = true); _ctrl.forward(); },
+      onExit: (_) { setState(() => _hovered = false); _ctrl.reverse(); },
       child: AnimatedBuilder(
         animation: _ctrl,
         builder: (context, child) => Transform(
@@ -191,7 +216,9 @@ class _HoverImageState extends State<_HoverImage>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(dotenv.env['ABOUT_IMAGE_URL'] ?? '', fit: BoxFit.cover),
+            child: widget.imageUrl.isNotEmpty
+                ? Image.network(widget.imageUrl, fit: BoxFit.cover)
+                : Container(color: c.secondary),
           ),
         ),
       ),
