@@ -416,7 +416,9 @@ class _SkillTickerRowState extends State<_SkillTickerRow>
   static const double _chipWidth = 140.0;
   static const double _chipMargin = 14.0;
   static const double _itemTotalWidth = _chipWidth + _chipMargin;
-  static final List<(String, Widget Function(Color))> _skills = [
+
+  // Hardcoded fallback
+  static final List<(String, Widget Function(Color))> _defaultSkills = [
     ('AWS',       (c) => FaIcon(FontAwesomeIcons.aws,    color: c, size: 18)),
     ('Docker',    (c) => FaIcon(FontAwesomeIcons.docker, color: c, size: 18)),
     ('Linux',     (c) => FaIcon(FontAwesomeIcons.linux,  color: c, size: 18)),
@@ -431,11 +433,51 @@ class _SkillTickerRowState extends State<_SkillTickerRow>
     ('Ubuntu',    (c) => Icon(Icons.terminal_rounded, color: c, size: 18)),
   ];
 
+  List<(String, Widget Function(Color))> _skills = _defaultSkills;
+
   @override
   void initState() {
     super.initState();
     _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 22))..repeat();
+    _loadTickerData();
   }
+
+  Future<void> _loadTickerData() async {
+    final data = await SupabaseService.instance.getTickerData();
+    if (data.isNotEmpty && mounted) {
+      setState(() {
+        _skills = data.map((item) {
+          final label = item['label']?.toString() ?? '';
+          final iconName = item['icon_name']?.toString() ?? '';
+          return (label, (Color c) => _resolveTickerIcon(iconName, c));
+        }).toList();
+      });
+    }
+  }
+
+  /// Maps icon_name strings to widgets (FontAwesome or Material)
+  static Widget _resolveTickerIcon(String name, Color c) {
+    switch (name) {
+      case 'aws':       return FaIcon(FontAwesomeIcons.aws,    color: c, size: 18);
+      case 'docker':    return FaIcon(FontAwesomeIcons.docker, color: c, size: 18);
+      case 'linux':     return FaIcon(FontAwesomeIcons.linux,  color: c, size: 18);
+      case 'git':       return FaIcon(FontAwesomeIcons.git,    color: c, size: 18);
+      case 'github':    return FaIcon(FontAwesomeIcons.github, color: c, size: 18);
+      case 'settings_backup_restore_rounded': return Icon(Icons.settings_backup_restore_rounded, color: c, size: 18);
+      case 'shield_rounded':                  return Icon(Icons.shield_rounded, color: c, size: 18);
+      case 'cloud_queue_rounded':             return Icon(Icons.cloud_queue_rounded, color: c, size: 18);
+      case 'layers_rounded':                  return Icon(Icons.layers_rounded, color: c, size: 18);
+      case 'dns_rounded':                     return Icon(Icons.dns_rounded, color: c, size: 18);
+      case 'admin_panel_settings_rounded':    return Icon(Icons.admin_panel_settings_rounded, color: c, size: 18);
+      case 'terminal_rounded':                return Icon(Icons.terminal_rounded, color: c, size: 18);
+      case 'code_rounded':                    return Icon(Icons.code_rounded, color: c, size: 18);
+      case 'security_rounded':                return Icon(Icons.security_rounded, color: c, size: 18);
+      case 'storage_rounded':                 return Icon(Icons.storage_rounded, color: c, size: 18);
+      case 'build_rounded':                   return Icon(Icons.build_rounded, color: c, size: 18);
+      default:                                return Icon(Icons.extension_rounded, color: c, size: 18);
+    }
+  }
+
   @override
   void dispose() { _ctrl.dispose(); super.dispose(); }
 
@@ -537,3 +579,4 @@ class _SkillTickerRowState extends State<_SkillTickerRow>
     );
   }
 }
+

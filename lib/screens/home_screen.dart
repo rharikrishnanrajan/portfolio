@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_colors.dart';
+import '../services/supabase_service.dart';
 import '../widgets/hero_section.dart';
 import '../widgets/about_section.dart';
 import '../widgets/skills_section.dart';
@@ -29,9 +30,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _activeSection = '';
 
+  // Dynamic site settings with hardcoded defaults
+  String _brandName = 'Harikrishnan Portfolio';
+  String _resumeUrl = 'https://drive.google.com/file/d/1GugnCFzKq0sIWZDrf7VohJOFUpcQ2TgT/view?usp=sharing';
+  String _footerText = 'Designed & Built by Harikrishanan R';
+
   @override
   void initState() {
     super.initState();
+    _loadSiteSettings();
     _scrollController.addListener(() {
       if (_scrollController.hasClients) {
         setState(() {
@@ -42,6 +49,18 @@ class _HomeScreenState extends State<HomeScreen> {
         _updateActiveSection();
       }
     });
+  }
+
+  Future<void> _loadSiteSettings() async {
+    final data = await SupabaseService.instance.getSiteSettings();
+    if (data != null && mounted) {
+      setState(() {
+        _brandName = data['brand_name'] as String? ?? _brandName;
+        final resume = data['resume_url'] as String?;
+        if (resume != null && resume.isNotEmpty) _resumeUrl = resume;
+        _footerText = data['footer_text'] as String? ?? _footerText;
+      });
+    }
   }
 
   void _updateActiveSection() {
@@ -102,8 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openResume() async {
-    final Uri url = Uri.parse(
-        'https://drive.google.com/file/d/1GugnCFzKq0sIWZDrf7VohJOFUpcQ2TgT/view?usp=sharing');
+    final Uri url = Uri.parse(_resumeUrl);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       debugPrint('Could not launch resume link');
     }
@@ -171,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ]
                                     : [],
                               ),
-                              child: const Text('Harikrishnan Portfolio'),
+                              child: Text(_brandName),
                             ),
                           ),
                         ),
@@ -331,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 1, color: c.textSecondary.withValues(alpha: 0.1)),
           const SizedBox(height: 24),
           Text(
-            'Designed & Built by Harikrishanan R',
+            _footerText,
             style: TextStyle(
               color: c.textSecondary.withValues(alpha: 0.5),
               fontSize: 13,

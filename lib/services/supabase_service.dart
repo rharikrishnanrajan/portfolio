@@ -15,6 +15,9 @@ class SupabaseService {
   List<Map<String, dynamic>>? _skillsData;
   List<Map<String, dynamic>>? _projectsData;
   List<Map<String, dynamic>>? _certificatesData;
+  Map<String, dynamic>? _contactData;
+  Map<String, dynamic>? _siteSettings;
+  List<Map<String, dynamic>>? _tickerData;
 
   // ── Hero Section ────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>?> getHeroData() async {
@@ -80,6 +83,46 @@ class SupabaseService {
     return _certificatesData ?? [];
   }
 
+  // ── Contact Section ─────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>?> getContactData() async {
+    if (_contactData != null) return _contactData;
+    try {
+      final response = await _client.from('contact_section').select().limit(1);
+      if (response.isNotEmpty) {
+        _contactData = response.first;
+      }
+    } catch (e) {
+      debugPrint('SupabaseService: Failed to fetch contact_section — $e');
+    }
+    return _contactData;
+  }
+
+  // ── Site Settings ───────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>?> getSiteSettings() async {
+    if (_siteSettings != null) return _siteSettings;
+    try {
+      final response = await _client.from('site_settings').select().limit(1);
+      if (response.isNotEmpty) {
+        _siteSettings = response.first;
+      }
+    } catch (e) {
+      debugPrint('SupabaseService: Failed to fetch site_settings — $e');
+    }
+    return _siteSettings;
+  }
+
+  // ── Tech Stack Ticker ───────────────────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> getTickerData() async {
+    if (_tickerData != null) return _tickerData!;
+    try {
+      final response = await _client.from('tech_stack_ticker').select().order('sort_order');
+      _tickerData = List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('SupabaseService: Failed to fetch tech_stack_ticker — $e');
+    }
+    return _tickerData ?? [];
+  }
+
   /// Clear all cached data (useful for pull-to-refresh or hot-reload)
   void clearCache() {
     _heroData = null;
@@ -87,5 +130,8 @@ class SupabaseService {
     _skillsData = null;
     _projectsData = null;
     _certificatesData = null;
+    _contactData = null;
+    _siteSettings = null;
+    _tickerData = null;
   }
 }
