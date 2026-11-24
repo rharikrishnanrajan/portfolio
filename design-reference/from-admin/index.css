@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Theme tokens: space-separated RGB so Tailwind opacity (bg-accent/15) works.
+   The Theme editor will overwrite these at runtime from Supabase. */
+:root {
+  --bg: 6 9 18;
+  --surface: 14 19 33;
+  --border: 30 38 58;
+  --text: 255 255 255;
+  --muted: 148 163 184;
+  --accent: 79 126 255;
+  --accent2: 199 210 254;
+}
+
+@theme inline {
+  --color-bg: rgb(var(--bg));
+  --color-surface: rgb(var(--surface));
+  --color-line: rgb(var(--border));
+  --color-ink: rgb(var(--text));
+  --color-muted: rgb(var(--muted));
+  --color-accent: rgb(var(--accent));
+  --color-accent2: rgb(var(--accent2));
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+body {
+  margin: 0;
+  background: rgb(var(--bg));
+  color: rgb(var(--text));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+* { border-color: rgb(var(--border)); }
+
+/* Reusable pieces matching the portfolio style */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+}
+.card { background: rgb(var(--surface)); border: 1px solid rgb(var(--border)); }
+.input {
+  width: 100%;
+  background: rgb(var(--bg));
+  border: 1px solid rgb(var(--border));
+  padding: 0.65rem 0.8rem;
+  color: rgb(var(--text));
+  outline: none;
+}
+.input:focus { border-color: rgb(var(--accent)); }
+.btn-primary {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.25rem;
+  color: rgb(var(--bg));
+  font-weight: 700;
+  background: linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent2)));
+  box-shadow: 0 0 24px rgb(var(--accent) / 0.35);
+  cursor: pointer;
+}
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
