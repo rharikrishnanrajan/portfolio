@@ -47,11 +47,7 @@ export function Hero() {
           ) : null}
 
           <div className="relative z-10 flex flex-col items-center text-center">
-<<<<<<< HEAD
-            <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden border-2 border-accent/60 shadow-[0_0_55px_rgb(var(--accent)/0.35)] bg-surface flex items-center justify-center">
-=======
             <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden border-[3px] border-accent/70 shadow-[0_0_60px_rgb(var(--accent)/0.45),0_0_120px_rgb(var(--accent)/0.18)] bg-surface flex items-center justify-center">
->>>>>>> 1e876a4f27dc58068327e632155b462e8b036899
               {showAvatarImg && safeAvatar ? (
                 <img
                   src={safeAvatar}
