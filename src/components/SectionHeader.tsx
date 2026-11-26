@@ -31,7 +31,11 @@ export function SectionHeader({
               {prefixNumber ? (
                 <>
                   <span>{prefixNumber}</span>
+<<<<<<< HEAD
                   <span className="inline-block h-px w-8 bg-line" aria-hidden="true" />
+=======
+                  <span className="inline-block h-px w-12 bg-line" aria-hidden="true" />
+>>>>>>> 1e876a4f27dc58068327e632155b462e8b036899
                 </>
               ) : null}
               <span>{eyebrow}</span>

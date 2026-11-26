@@ -55,7 +55,11 @@ export function Footer() {
               <span className="inline-flex h-9 w-9 items-center justify-center border border-line bg-surface font-mono text-xs font-bold tracking-wider text-ink">
                 {settings.logo_text}
               </span>
+<<<<<<< HEAD
               <span className="text-xl font-bold tracking-tight text-ink">
+=======
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
+>>>>>>> 1e876a4f27dc58068327e632155b462e8b036899
                 {settings.brand_name}
               </span>
             </div>

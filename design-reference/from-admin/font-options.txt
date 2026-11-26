@@ -1,0 +1,8 @@
+HEADING FONTS (exact values the admin Theme page can save):
+Inter Variable, Georgia, Merriweather, Playfair Display, Raleway, Nunito
+MONO FONTS:
+JetBrains Mono Variable, Fira Code, Source Code Pro, IBM Plex Mono, Courier New
+ALIASES (older values stored in the database; treat them as the Variable names):
+"Inter" = "Inter Variable"
+"JetBrains Mono" = "JetBrains Mono Variable"
+Georgia and Courier New are system fonts: no package, never lazy-loaded.

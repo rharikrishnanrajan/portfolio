@@ -60,7 +60,11 @@ export function SkillsSection({ section }: SkillsSectionProps) {
                       {domain.tools.map((tool, toolIdx) => (
                         <li
                           key={`${tool}-${toolIdx}`}
+<<<<<<< HEAD
                           className="border border-line bg-bg/60 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-muted"
+=======
+                          className="border border-line bg-bg/60 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.13em] text-muted"
+>>>>>>> 1e876a4f27dc58068327e632155b462e8b036899
                         >
                           {tool}
                         </li>
