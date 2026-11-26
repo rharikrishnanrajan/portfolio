@@ -186,7 +186,7 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
               ) : null}
             </div>
 
-            <div className="border-t border-b border-line divide-y divide-line">
+            <div className="border-t border-b border-line divide-y">
               {profile?.email && safeEmailHref ? (
                 <a
                   href={safeEmailHref}

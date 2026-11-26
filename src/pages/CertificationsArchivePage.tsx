@@ -39,7 +39,7 @@ export function CertificationsArchivePage() {
         />
 
         {content.certifications.length > 0 ? (
-          <div className="divide-y divide-line border-b border-line">
+          <div className="divide-y border-b border-line">
             {content.certifications.map((cert, idx) => (
               <CertificationRow key={cert.id} certification={cert} index={idx} />
             ))}

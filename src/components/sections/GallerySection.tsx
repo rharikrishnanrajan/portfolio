@@ -23,7 +23,7 @@ function GalleryCard({
 
   return (
     <figure className="card overflow-hidden flex flex-col">
-      <div className="aspect-[4/3] bg-bg/60 overflow-hidden">
+      <div className="aspect-4/3 bg-bg/60 overflow-hidden">
         <img
           src={url}
           alt={caption || fallbackAlt}

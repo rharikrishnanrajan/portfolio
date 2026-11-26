@@ -41,7 +41,7 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
           }
         />
 
-        <div className="divide-y divide-line border-b border-line">
+        <div className="divide-y border-b border-line">
           {content.publications.map((pub, idx) => {
             const publishedDate = formatMonthYear(pub.published_on)
             const safePubUrl = safeUrl(pub.url, { allowMailtoTel: false })

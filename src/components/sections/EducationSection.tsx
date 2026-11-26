@@ -36,7 +36,7 @@ export function EducationSection({ section }: EducationSectionProps) {
         />
 
         {content.education.length > 0 ? (
-          <div className="divide-y divide-line border-b border-line">
+          <div className="divide-y border-b border-line">
             {content.education.map((edu, idx) => (
               <article
                 key={edu.id}
