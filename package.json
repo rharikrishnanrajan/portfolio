@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/snapshot.mjs",
+    "pretest": "node scripts/snapshot.mjs",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "oxlint",
