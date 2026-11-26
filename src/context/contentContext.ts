@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import type { ContactInsertResult, ContactMessageInput } from '../lib/supabase'
 import type { SiteContent, ThemeMode } from '../types/content'
 
 export type ContentStatus = 'loading' | 'ready' | 'empty' | 'unavailable'
@@ -13,6 +14,7 @@ export interface ContentContextValue {
   setThemeMode: (mode: ThemeMode) => void
   toggleThemeMode: () => void
   retry: () => void
+  sendContactMessage: (payload: ContactMessageInput) => Promise<ContactInsertResult>
 }
 
 export const ContentContext = createContext<ContentContextValue | null>(null)

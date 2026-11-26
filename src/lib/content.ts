@@ -1,8 +1,7 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import snapshotJson from '../generated/content.snapshot.json'
 import type { SiteContent } from '../types/content'
 import { EMPTY_SITE_CONTENT, parseSiteContent } from './schemas'
-import { getSupabaseClient } from './supabase'
+import { getSupabaseClient, type PublicSupabaseClient } from './supabase'
 
 export const CONTENT_CACHE_KEY = 'portfolio:v1'
 export const FETCH_TIMEOUT_MS = 15_000
@@ -22,7 +21,7 @@ export class ContentFetchError extends Error {
 
 export interface FetchSiteContentOptions {
   signal?: AbortSignal
-  client?: SupabaseClient
+  client?: PublicSupabaseClient
   timeoutMs?: number
   maxRetries?: number
   baseDelayMs?: number
@@ -145,9 +144,7 @@ export async function fetchSiteContent(
     externalSignal?.addEventListener('abort', onExternalAbort, { once: true })
 
     try {
-      const response = await client
-        .rpc('get_site_content')
-        .abortSignal(attemptController.signal)
+      const response = await client.fetchSiteContentRpc(attemptController.signal)
 
       if (externalSignal?.aborted) {
         throw new DOMException('Aborted', 'AbortError')
@@ -155,7 +152,7 @@ export async function fetchSiteContent(
 
       if (timedOut) {
         lastError = new ContentFetchError('Request timed out', true)
-      } else if (response.error) {
+      } else if (!response.ok) {
         const retryable = isRetryableStatus(response.status)
         lastError = new ContentFetchError('Unable to load site content', retryable)
         if (!retryable) {

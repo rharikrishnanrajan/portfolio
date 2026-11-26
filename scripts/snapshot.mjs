@@ -102,24 +102,29 @@ async function main() {
   const anonKey = process.env.VITE_SUPABASE_ANON_KEY?.trim()
 
   if (!supabaseUrl || !anonKey) {
-    process.stdout.write('[snapshot] Missing Supabase env vars; writing empty snapshot.\n')
+    process.stdout.write(
+      '[snapshot] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY (check .env.local or build env vars); writing empty snapshot.\n',
+    )
     writeSnapshot(EMPTY_SNAPSHOT)
     return
   }
 
+  let parsed
   let endpoint
   try {
-    const parsed = new URL(supabaseUrl)
+    parsed = new URL(supabaseUrl)
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
       throw new Error('Invalid protocol')
     }
-    endpoint = new URL('/rest/v1/rpc/get_site_content', parsed).toString()
+    const base = parsed.toString().replace(/\/+$/, '')
+    endpoint = `${base}/rest/v1/rpc/get_site_content`
   } catch {
     process.stdout.write('[snapshot] Invalid VITE_SUPABASE_URL; writing empty snapshot.\n')
     writeSnapshot(EMPTY_SNAPSHOT)
     return
   }
 
+  const host = parsed.host
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 10_000)
 
@@ -128,8 +133,8 @@ async function main() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
         apikey: anonKey,
-        Authorization: `Bearer ${anonKey}`,
       },
       body: '{}',
       signal: controller.signal,
@@ -137,7 +142,7 @@ async function main() {
 
     if (!response.ok) {
       process.stdout.write(
-        `[snapshot] RPC returned HTTP ${response.status}; writing empty snapshot.\n`,
+        `[snapshot] ${host} returned HTTP ${response.status} — check that supabase/05_public_api.sql was run and that env vars are set; writing empty snapshot.\n`,
       )
       writeSnapshot(EMPTY_SNAPSHOT)
       return
@@ -154,8 +159,16 @@ async function main() {
     process.stdout.write(
       `[snapshot] Wrote snapshot (version ${typeof payload.version === 'number' ? payload.version : 0}).\n`,
     )
-  } catch {
-    process.stdout.write('[snapshot] Failed to fetch snapshot; writing empty snapshot.\n')
+  } catch (err) {
+    const reason =
+      err instanceof Error && err.name === 'AbortError'
+        ? 'request timed out after 10s'
+        : err instanceof Error
+          ? err.message
+          : 'network or fetch error'
+    process.stdout.write(
+      `[snapshot] Request to ${host} failed (${reason}) — check that supabase/05_public_api.sql was run and that env vars are set; writing empty snapshot.\n`,
+    )
     writeSnapshot(EMPTY_SNAPSHOT)
   } finally {
     clearTimeout(timer)

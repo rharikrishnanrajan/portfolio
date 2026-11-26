@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { PublicSupabaseClient, RpcFetchResult } from '../lib/supabase'
 import {
   CONTENT_CACHE_KEY,
   ContentFetchError,
@@ -53,28 +53,13 @@ function makeSampleContent(version = 1, brandName = 'Harikrishnan R'): SiteConte
 }
 
 function createRpcMockClient(
-  rpcImpl: (signal?: AbortSignal) => Promise<{ data: unknown; error: unknown; status: number }>,
-): SupabaseClient {
+  rpcImpl: (signal?: AbortSignal) => Promise<RpcFetchResult>,
+): PublicSupabaseClient {
   return {
-    rpc: vi.fn(() => {
-      let currentSignal: AbortSignal | undefined
-      const builder = {
-        abortSignal(signal: AbortSignal) {
-          currentSignal = signal
-          return builder
-        },
-        then<TResult1 = unknown, TResult2 = never>(
-          onfulfilled?:
-            | ((value: { data: unknown; error: unknown; status: number }) => TResult1 | PromiseLike<TResult1>)
-            | null,
-          onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
-        ) {
-          return rpcImpl(currentSignal).then(onfulfilled, onrejected)
-        },
-      }
-      return builder
-    }),
-  } as unknown as SupabaseClient
+    fetchSiteContentRpc: vi.fn((signal?: AbortSignal) => rpcImpl(signal)),
+    insertContactMessage: vi.fn().mockResolvedValue({ ok: true, status: 201 }),
+    subscribeContentVersion: vi.fn().mockResolvedValue(async () => undefined),
+  }
 }
 
 describe('content cache and snapshot helpers', () => {
@@ -125,10 +110,10 @@ describe('fetchSiteContent retry, backoff, and timeout', () => {
 
     const client = createRpcMockClient(async () => {
       calls += 1
-      if (calls === 1) return { data: null, error: { message: 'server error' }, status: 500 }
-      if (calls === 2) return { data: null, error: { message: 'rate limit' }, status: 429 }
+      if (calls === 1) return { ok: false, data: null, status: 500 }
+      if (calls === 2) return { ok: false, data: null, status: 429 }
       if (calls === 3) throw new Error('Network failure')
-      return { data: sample, error: null, status: 200 }
+      return { ok: true, data: sample, status: 200 }
     })
 
     const result = await fetchSiteContent({
@@ -150,7 +135,7 @@ describe('fetchSiteContent retry, backoff, and timeout', () => {
     let calls = 0
     const client = createRpcMockClient(async () => {
       calls += 1
-      return { data: null, error: { message: 'bad request' }, status: 400 }
+      return { ok: false, data: null, status: 400 }
     })
 
     await expect(
@@ -172,7 +157,7 @@ describe('fetchSiteContent retry, backoff, and timeout', () => {
       if (signal?.aborted) {
         throw new DOMException('Aborted', 'AbortError')
       }
-      return { data: makeSampleContent(1), error: null, status: 200 }
+      return { ok: true, data: makeSampleContent(1), status: 200 }
     })
 
     await expect(

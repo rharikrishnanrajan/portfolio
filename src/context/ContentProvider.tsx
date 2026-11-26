@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   fetchSiteContent,
   getSnapshotContent,
@@ -8,7 +7,12 @@ import {
   writeCachedContent,
 } from '../lib/content'
 import { EMPTY_SITE_CONTENT } from '../lib/schemas'
-import { getSupabaseClient } from '../lib/supabase'
+import {
+  getSupabaseClient,
+  type ContactInsertResult,
+  type ContactMessageInput,
+  type PublicSupabaseClient,
+} from '../lib/supabase'
 import { applyTheme, resolveThemeMode, writeStoredThemeMode } from '../lib/theme'
 import type { SiteContent, ThemeMode } from '../types/content'
 import {
@@ -86,7 +90,7 @@ function applyDocumentSeo(content: SiteContent): void {
 
 export interface ContentProviderProps {
   children: ReactNode
-  client?: SupabaseClient
+  client?: PublicSupabaseClient
   initialContent?: SiteContent
   disableLiveUpdates?: boolean
 }
@@ -135,7 +139,7 @@ export function ContentProvider({
     async (options?: { markLoadingIfEmpty?: boolean; showRefreshing?: boolean }) => {
       if (disableLiveUpdates) return
 
-      let resolvedClient: SupabaseClient
+      let resolvedClient: PublicSupabaseClient
       try {
         resolvedClient = client ?? getSupabaseClient()
       } catch {
@@ -188,6 +192,18 @@ export function ContentProvider({
     void loadLiveContent({ markLoadingIfEmpty: true, showRefreshing: true })
   }, [loadLiveContent])
 
+  const sendContactMessage = useCallback(
+    async (payload: ContactMessageInput): Promise<ContactInsertResult> => {
+      try {
+        const resolvedClient = client ?? getSupabaseClient()
+        return await resolvedClient.insertContactMessage(payload)
+      } catch {
+        return { ok: false, status: 0, errorKind: 'generic' }
+      }
+    },
+    [client],
+  )
+
   useEffect(() => {
     mountedRef.current = true
 
@@ -198,23 +214,19 @@ export function ContentProvider({
       }
     }
 
-    let resolvedClient: SupabaseClient | null = null
+    let resolvedClient: PublicSupabaseClient | null = null
     try {
       resolvedClient = client ?? getSupabaseClient()
     } catch {
       resolvedClient = null
     }
 
+    let disposed = false
     let debounceTimer: number | null = null
     let throttleTimer: number | null = null
     let pollTimer: number | null = null
+    let unsubscribeRealtime: (() => Promise<void>) | null = null
     let hiddenAt: number | null = document.visibilityState === 'hidden' ? Date.now() : null
-
-    const triggerBackgroundSync = () => {
-      void loadLiveContent({ markLoadingIfEmpty: false, showRefreshing: false })
-    }
-
-    const initialTimer = window.setTimeout(triggerBackgroundSync, 0)
 
     const clearScheduledRefetch = () => {
       if (debounceTimer !== null) {
@@ -285,42 +297,58 @@ export function ContentProvider({
 
     document.addEventListener('visibilitychange', onVisibilityChange)
 
-    const channel = resolvedClient
-      ? resolvedClient
-          .channel('public:content_version')
-          .on(
-            'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: 'content_version' },
-            (payload) => {
-              const rawNew = payload.new as { version?: unknown } | null
-              const nextVersion = rawNew?.version
-              if (typeof nextVersion === 'number' && nextVersion > currentVersionRef.current) {
-                scheduleRealtimeRefetch()
-              }
-            },
-          )
-          .subscribe((channelStatus) => {
-            const state = String(channelStatus)
-            if (state === 'SUBSCRIBED') {
+    const startRealtime = () => {
+      if (disposed || !resolvedClient) return
+      void resolvedClient
+        .subscribeContentVersion({
+          onUpdate: (nextVersion) => {
+            if (nextVersion > currentVersionRef.current) {
+              scheduleRealtimeRefetch()
+            }
+          },
+          onStatus: (channelStatus) => {
+            if (channelStatus === 'SUBSCRIBED') {
               stopPolling()
             } else if (
               mountedRef.current &&
-              (state === 'CHANNEL_ERROR' || state === 'TIMED_OUT' || state === 'CLOSED')
+              (channelStatus === 'CHANNEL_ERROR' ||
+                channelStatus === 'TIMED_OUT' ||
+                channelStatus === 'CLOSED')
             ) {
               startPolling()
             }
-          })
-      : null
+          },
+        })
+        .then((unsub) => {
+          if (disposed) {
+            void unsub()
+          } else {
+            unsubscribeRealtime = unsub
+          }
+        })
+        .catch(() => {
+          if (mountedRef.current && !disposed) {
+            startPolling()
+          }
+        })
+    }
+
+    const initialTimer = window.setTimeout(() => {
+      void loadLiveContent({ markLoadingIfEmpty: false, showRefreshing: false }).finally(() => {
+        startRealtime()
+      })
+    }, 0)
 
     return () => {
+      disposed = true
       mountedRef.current = false
       window.clearTimeout(initialTimer)
       activeAbortRef.current?.abort()
       clearScheduledRefetch()
       stopPolling()
       document.removeEventListener('visibilitychange', onVisibilityChange)
-      if (resolvedClient && channel) {
-        void resolvedClient.removeChannel(channel)
+      if (unsubscribeRealtime) {
+        void unsubscribeRealtime()
       }
     }
   }, [client, disableLiveUpdates, loadLiveContent])
@@ -335,8 +363,19 @@ export function ContentProvider({
       setThemeMode,
       toggleThemeMode,
       retry,
+      sendContactMessage,
     }),
-    [content, status, source, isRefreshing, themeMode, setThemeMode, toggleThemeMode, retry],
+    [
+      content,
+      status,
+      source,
+      isRefreshing,
+      themeMode,
+      setThemeMode,
+      toggleThemeMode,
+      retry,
+      sendContactMessage,
+    ],
   )
 
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>

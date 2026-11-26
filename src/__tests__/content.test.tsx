@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type {
+  ContentVersionSubscriptionHandlers,
+  PublicSupabaseClient,
+  RpcFetchResult,
+} from '../lib/supabase'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { EmptyView, LoadingView, UnavailableView } from '../components/StatusViews'
 import {
@@ -59,55 +63,30 @@ interface MockChannelControls {
 }
 
 function createMockSupabaseClient(
-  rpcImpl: (signal?: AbortSignal) => Promise<{ data: unknown; error: unknown; status: number }>,
-): { client: SupabaseClient; controls: MockChannelControls } {
-  let updateCb: ((payload: { new: { version: number } }) => void) | null = null
-  let statusCb: ((status: string) => void) | null = null
-
-  const channelObj = {
-    on: vi.fn((_type: string, _filter: unknown, cb: (payload: { new: { version: number } }) => void) => {
-      updateCb = cb
-      return channelObj
-    }),
-    subscribe: vi.fn((cb?: (status: string) => void) => {
-      statusCb = cb ?? null
-      return channelObj
-    }),
-  }
-
+  rpcImpl: (signal?: AbortSignal) => Promise<RpcFetchResult>,
+): { client: PublicSupabaseClient; controls: MockChannelControls } {
+  let activeHandlers: ContentVersionSubscriptionHandlers | null = null
   const removeChannel = vi.fn().mockResolvedValue('ok')
 
-  const client = {
-    rpc: vi.fn(() => {
-      let currentSignal: AbortSignal | undefined
-      const builder = {
-        abortSignal(signal: AbortSignal) {
-          currentSignal = signal
-          return builder
-        },
-        then<TResult1 = unknown, TResult2 = never>(
-          onfulfilled?:
-            | ((value: { data: unknown; error: unknown; status: number }) => TResult1 | PromiseLike<TResult1>)
-            | null,
-          onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
-        ) {
-          return rpcImpl(currentSignal).then(onfulfilled, onrejected)
-        },
+  const client: PublicSupabaseClient = {
+    fetchSiteContentRpc: vi.fn((signal?: AbortSignal) => rpcImpl(signal)),
+    insertContactMessage: vi.fn().mockResolvedValue({ ok: true, status: 201 }),
+    subscribeContentVersion: vi.fn(async (handlers: ContentVersionSubscriptionHandlers) => {
+      activeHandlers = handlers
+      return async () => {
+        await removeChannel()
       }
-      return builder
     }),
-    channel: vi.fn(() => channelObj),
-    removeChannel,
-  } as unknown as SupabaseClient
+  }
 
   return {
     client,
     controls: {
       emitUpdate: (version: number) => {
-        updateCb?.({ new: { version } })
+        activeHandlers?.onUpdate(version)
       },
       emitStatus: (status: string) => {
-        statusCb?.(status)
+        activeHandlers?.onStatus(status)
       },
       removeChannel,
     },
@@ -178,8 +157,8 @@ describe('ContentProvider lifecycle', () => {
     writeCachedContent(makeSampleContent(2, 'Cached Brand'))
 
     const { client } = createMockSupabaseClient(async () => ({
+      ok: false,
       data: null,
-      error: { message: 'offline' },
       status: 400,
     }))
 
@@ -198,9 +177,9 @@ describe('ContentProvider lifecycle', () => {
     let shouldFail = true
     const { client } = createMockSupabaseClient(async () => {
       if (shouldFail) {
-        return { data: null, error: { message: 'bad' }, status: 400 }
+        return { ok: false, data: null, status: 400 }
       }
-      return { data: makeSampleContent(5, 'Recovered Brand'), error: null, status: 200 }
+      return { ok: true, data: makeSampleContent(5, 'Recovered Brand'), status: 200 }
     })
 
     render(
@@ -227,8 +206,8 @@ describe('ContentProvider lifecycle', () => {
     vi.useFakeTimers()
     let currentVersion = 1
     const { client, controls } = createMockSupabaseClient(async () => ({
+      ok: true,
       data: makeSampleContent(currentVersion, `Brand v${currentVersion}`),
-      error: null,
       status: 200,
     }))
 

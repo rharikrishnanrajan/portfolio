@@ -92,10 +92,10 @@ const MONO_FONT_MAP: Record<string, FontSpec> = {
     cssFamily: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
     loader: () =>
       Promise.all([
-        import('@fontsource/ibm-plex-mono/400.css'),
-        import('@fontsource/ibm-plex-mono/500.css'),
-        import('@fontsource/ibm-plex-mono/600.css'),
-        import('@fontsource/ibm-plex-mono/700.css'),
+        import('@fontsource/ibm-plex-mono/latin-400.css'),
+        import('@fontsource/ibm-plex-mono/latin-500.css'),
+        import('@fontsource/ibm-plex-mono/latin-600.css'),
+        import('@fontsource/ibm-plex-mono/latin-700.css'),
       ]),
   },
   'Courier New': {
