@@ -139,15 +139,48 @@ Record-WriteRefusal -Name "Delete on projects refused" -Status $projDelete.Statu
 $adminInsert = Invoke-CurlRequest -Method "POST" -Url "$supabaseUrl/rest/v1/admins" -ExtraHeaders @("Content-Type: application/json", "Prefer: return=minimal") -Body '{"user_id":"00000000-0000-0000-0000-000000000000"}'
 Record-WriteRefusal -Name "Insert into admins refused" -Status $adminInsert.Status
 
-# 4. Storage upload to real buckets (portfolio, project-documents): PASS only on 401/403
+# 4. Storage upload to real buckets (portfolio, project-documents): PASS on 401/403 or body statusCode 403 / RLS / Unauthorized
 foreach ($bucket in @("portfolio", "project-documents")) {
   $uploadRes = Invoke-CurlRequest -Method "POST" -Url "$supabaseUrl/storage/v1/object/$bucket/smoke-test.txt" -ExtraHeaders @("Content-Type: text/plain") -Body "smoke-test"
-  if ($uploadRes.Status -eq "401" -or $uploadRes.Status -eq "403") {
-    Record-Result -Name "Storage upload to $bucket refused" -Passed $true -Detail "HTTP $($uploadRes.Status)"
-  } elseif ($uploadRes.Status -eq "400" -or $uploadRes.Status -eq "404") {
-    Record-Result -Name "Storage upload to $bucket refused" -Passed $false -Detail "HTTP $($uploadRes.Status) - bucket missing or request malformed"
+  $bodyStatusCode = ""
+  $bodyMessage = ""
+  if ($uploadRes.Body) {
+    try {
+      $bodyJson = $uploadRes.Body | ConvertFrom-Json
+      if ($null -ne $bodyJson) {
+        if ($null -ne $bodyJson.PSObject.Properties["statusCode"]) {
+          $bodyStatusCode = [string]$bodyJson.statusCode
+        }
+        if ($null -ne $bodyJson.PSObject.Properties["message"]) {
+          $bodyMessage = [string]$bodyJson.message
+        }
+      }
+    } catch {
+      # Non-JSON response body; fall back to HTTP status and raw body checks
+    }
+  }
+
+  $isUploadSuccess = ($uploadRes.Status -eq "200" -or $uploadRes.Status -eq "201")
+  $isBucketMissing = ($bodyStatusCode -eq "404" -or $bodyMessage -match "Bucket not found" -or $uploadRes.Body -match "Bucket not found")
+  $isRefused = (
+    $uploadRes.Status -eq "401" -or
+    $uploadRes.Status -eq "403" -or
+    $bodyStatusCode -eq "403" -or
+    $bodyMessage -match "row-level security" -or
+    $bodyMessage -match "Unauthorized" -or
+    $uploadRes.Body -match "row-level security" -or
+    $uploadRes.Body -match "Unauthorized"
+  )
+
+  if ($isUploadSuccess) {
+    Record-Result -Name "Storage upload to $bucket refused" -Passed $false -Detail "HTTP $($uploadRes.Status) - upload succeeded"
+  } elseif ($isBucketMissing) {
+    Record-Result -Name "Storage upload to $bucket refused" -Passed $false -Detail "HTTP $($uploadRes.Status) - bucket not found"
+  } elseif ($isRefused) {
+    $detail = if ($bodyStatusCode) { "HTTP $($uploadRes.Status), body statusCode $bodyStatusCode" } else { "HTTP $($uploadRes.Status)" }
+    Record-Result -Name "Storage upload to $bucket refused" -Passed $true -Detail $detail
   } else {
-    Record-Result -Name "Storage upload to $bucket refused" -Passed $false -Detail "HTTP $($uploadRes.Status) - expected 401 or 403"
+    Record-Result -Name "Storage upload to $bucket refused" -Passed $false -Detail "HTTP $($uploadRes.Status) - expected 401, 403, or RLS refusal"
   }
 }
 
