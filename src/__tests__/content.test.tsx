@@ -17,6 +17,31 @@ import { writeCachedContent } from '../lib/content'
 import { EMPTY_SITE_CONTENT } from '../lib/schemas'
 import type { SiteContent } from '../types/content'
 
+vi.mock('../generated/content.snapshot.json', () => ({
+  default: {
+    version: 0,
+    settings: {
+      logo_text: '',
+      brand_name: '',
+      nav_cta_label: '',
+      hero: { roles: [], chips_left: [], chips_right: [], stats: [] },
+      footer: {},
+      theme: { default_mode: 'dark', fonts: {} },
+      seo: {},
+    },
+    profile: null,
+    sections: [],
+    social_links: [],
+    overview_rows: [],
+    competencies: [],
+    skill_domains: [],
+    projects: [],
+    education: [],
+    certifications: [],
+    publications: [],
+  },
+}))
+
 function makeSampleContent(version = 1, brandName = 'Harikrishnan R'): SiteContent {
   return {
     ...EMPTY_SITE_CONTENT,

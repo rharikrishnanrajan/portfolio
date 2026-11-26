@@ -141,7 +141,7 @@ Record-WriteRefusal -Name "Insert into admins refused" -Status $adminInsert.Stat
 
 # 4. Storage upload to real buckets (portfolio, project-documents): PASS on 401/403 or body statusCode 403 / RLS / Unauthorized
 foreach ($bucket in @("portfolio", "project-documents")) {
-  $uploadRes = Invoke-CurlRequest -Method "POST" -Url "$supabaseUrl/storage/v1/object/$bucket/smoke-test.txt" -ExtraHeaders @("Content-Type: text/plain") -Body "smoke-test"
+  $uploadRes = Invoke-CurlRequest -Method "POST" -Url "$supabaseUrl/storage/v1/object/$bucket/smoke-test.png" -ExtraHeaders @("Content-Type: image/png") -Body "smoke-test"
   $bodyStatusCode = ""
   $bodyMessage = ""
   if ($uploadRes.Body) {
@@ -161,7 +161,14 @@ foreach ($bucket in @("portfolio", "project-documents")) {
   }
 
   $isUploadSuccess = ($uploadRes.Status -eq "200" -or $uploadRes.Status -eq "201")
-  $isBucketMissing = ($bodyStatusCode -eq "404" -or $bodyMessage -match "Bucket not found" -or $uploadRes.Body -match "Bucket not found")
+  $isInconclusiveOrMissing = (
+    $uploadRes.Status -eq "415" -or
+    $uploadRes.Status -eq "404" -or
+    $bodyStatusCode -eq "415" -or
+    $bodyStatusCode -eq "404" -or
+    $bodyMessage -match "Bucket not found" -or
+    $uploadRes.Body -match "Bucket not found"
+  )
   $isRefused = (
     $uploadRes.Status -eq "401" -or
     $uploadRes.Status -eq "403" -or
@@ -174,8 +181,8 @@ foreach ($bucket in @("portfolio", "project-documents")) {
 
   if ($isUploadSuccess) {
     Record-Result -Name "Storage upload to $bucket refused" -Passed $false -Detail "HTTP $($uploadRes.Status) - upload succeeded"
-  } elseif ($isBucketMissing) {
-    Record-Result -Name "Storage upload to $bucket refused" -Passed $false -Detail "HTTP $($uploadRes.Status) - bucket not found"
+  } elseif ($isInconclusiveOrMissing) {
+    Record-Result -Name "Storage upload to $bucket refused" -Passed $false -Detail "HTTP $($uploadRes.Status) - inconclusive or bucket missing"
   } elseif ($isRefused) {
     $detail = if ($bodyStatusCode) { "HTTP $($uploadRes.Status), body statusCode $bodyStatusCode" } else { "HTTP $($uploadRes.Status)" }
     Record-Result -Name "Storage upload to $bucket refused" -Passed $true -Detail $detail
