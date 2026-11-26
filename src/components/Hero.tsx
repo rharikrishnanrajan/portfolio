@@ -31,7 +31,7 @@ export function Hero() {
     <section id="top" aria-labelledby="hero-heading" className="py-8 sm:py-12">
       <div className="mx-auto max-w-6xl px-6">
         <div
-          className="relative overflow-hidden rounded-[2rem] border border-line bg-surface/35 px-6 py-12 sm:px-12 sm:py-16"
+          className="relative overflow-hidden rounded-4xl border border-line bg-surface/35 px-6 py-12 sm:px-12 sm:py-16"
           style={{
             backgroundImage:
               'radial-gradient(circle at 50% 24%, rgb(var(--accent) / 0.14), transparent 58%)',
@@ -40,11 +40,7 @@ export function Hero() {
           {hero.ghost_word ? (
             <div
               aria-hidden="true"
-<<<<<<< HEAD
-              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2 text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/[0.04] whitespace-nowrap"
-=======
-              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2 text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/[0.025] whitespace-nowrap"
->>>>>>> 1e876a4f27dc58068327e632155b462e8b036899
+              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2 text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/2.5 whitespace-nowrap"
             >
               {hero.ghost_word}
             </div>
