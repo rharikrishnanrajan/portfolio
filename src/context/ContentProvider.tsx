@@ -34,7 +34,7 @@ interface InitialState {
   hasFallback: boolean
 }
 
-function buildInitialState(initialContent?: SiteContent): InitialState {
+function buildInitialState(initialContent?: SiteContent, snapshotOverride?: SiteContent): InitialState {
   if (initialContent) {
     return {
       content: initialContent,
@@ -54,7 +54,7 @@ function buildInitialState(initialContent?: SiteContent): InitialState {
     }
   }
 
-  const snapshot = getSnapshotContent()
+  const snapshot = snapshotOverride ?? getSnapshotContent()
   if (hasMeaningfulContent(snapshot)) {
     return {
       content: snapshot,
@@ -92,6 +92,7 @@ export interface ContentProviderProps {
   children: ReactNode
   client?: PublicSupabaseClient
   initialContent?: SiteContent
+  snapshotOverride?: SiteContent
   disableLiveUpdates?: boolean
 }
 
@@ -99,9 +100,10 @@ export function ContentProvider({
   children,
   client,
   initialContent,
+  snapshotOverride,
   disableLiveUpdates = false,
 }: ContentProviderProps) {
-  const [initial] = useState<InitialState>(() => buildInitialState(initialContent))
+  const [initial] = useState<InitialState>(() => buildInitialState(initialContent, snapshotOverride))
   const [content, setContent] = useState<SiteContent>(initial.content)
   const [status, setStatus] = useState<ContentStatus>(initial.status)
   const [source, setSource] = useState<ContentSource>(initial.source)

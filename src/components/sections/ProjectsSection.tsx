@@ -28,7 +28,7 @@ export function ProjectsSection({ section }: ProjectsSectionProps) {
       id={section.slug}
       tabIndex={-1}
       aria-labelledby={titleId}
-      className={`py-20 sm:py-24 border-t border-line/60 reveal ${isVisible ? 'is-visible' : ''}`}
+      className={`py-20 sm:py-24 border-t border-line/60 scroll-mt-16 reveal ${isVisible ? 'is-visible' : ''}`}
     >
       <div className="mx-auto max-w-6xl px-6">
         <SectionHeader

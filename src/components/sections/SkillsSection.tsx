@@ -18,7 +18,7 @@ export function SkillsSection({ section }: SkillsSectionProps) {
       id={section.slug}
       tabIndex={-1}
       aria-labelledby={titleId}
-      className={`py-20 sm:py-24 border-t border-line/60 reveal ${isVisible ? 'is-visible' : ''}`}
+      className={`py-20 sm:py-24 border-t border-line/60 scroll-mt-16 reveal ${isVisible ? 'is-visible' : ''}`}
     >
       <div className="mx-auto max-w-6xl px-6 space-y-12">
         <SectionHeader
@@ -60,7 +60,7 @@ export function SkillsSection({ section }: SkillsSectionProps) {
                       {domain.tools.map((tool, toolIdx) => (
                         <li
                           key={`${tool}-${toolIdx}`}
-                          className="border border-line bg-bg/60 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-muted"
+                          className="border border-line bg-bg/60 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.13em] text-muted"
                         >
                           {tool}
                         </li>

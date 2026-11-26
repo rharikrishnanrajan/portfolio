@@ -35,6 +35,9 @@ supabase/.temp/
 # =============================================================================
 graphify-out/
 .agents/
+design-reference/
+PORTFOLIO_PROGRESS.md
+PORTFOLIO_BUILD_PROMPT.md
 .graphify_build_state.json
 .graphify_labels.json
 .graphify_labels.json.sig

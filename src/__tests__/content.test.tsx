@@ -208,7 +208,7 @@ describe('ContentProvider lifecycle', () => {
     })
 
     render(
-      <ContentProvider client={client}>
+      <ContentProvider client={client} snapshotOverride={EMPTY_SITE_CONTENT}>
         <Consumer />
       </ContentProvider>,
     )
