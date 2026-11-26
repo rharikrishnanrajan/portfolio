@@ -31,7 +31,7 @@ export function SectionHeader({
               {prefixNumber ? (
                 <>
                   <span>{prefixNumber}</span>
-                  <span className="inline-block h-px w-12 bg-line" aria-hidden="true" />
+                  <span className="inline-block h-px w-8 bg-line" aria-hidden="true" />
                 </>
               ) : null}
               <span>{eyebrow}</span>

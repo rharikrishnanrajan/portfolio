@@ -40,14 +40,14 @@ export function Hero() {
           {hero.ghost_word ? (
             <div
               aria-hidden="true"
-              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2 text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/[0.025] whitespace-nowrap"
+              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2 text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/[0.04] whitespace-nowrap"
             >
               {hero.ghost_word}
             </div>
           ) : null}
 
           <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden border-[3px] border-accent/70 shadow-[0_0_60px_rgb(var(--accent)/0.45),0_0_120px_rgb(var(--accent)/0.18)] bg-surface flex items-center justify-center">
+            <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden border-2 border-accent/60 shadow-[0_0_55px_rgb(var(--accent)/0.35)] bg-surface flex items-center justify-center">
               {showAvatarImg && safeAvatar ? (
                 <img
                   src={safeAvatar}
