@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { safeHeroTarget, safeImageUrl, safeUrl } from '../lib/safeUrl'
+import { safeHeroTarget, safeImageUrl, safeStorageUrl, safeUrl } from '../lib/safeUrl'
 
 const SUPABASE_ORIGIN = 'https://anjihgkdkiipmrafevan.supabase.co'
 
@@ -56,6 +56,37 @@ describe('safeImageUrl', () => {
     expect(safeImageUrl('javascript:alert(1)', SUPABASE_ORIGIN)).toBeNull()
     expect(safeImageUrl('data:image/png;base64,AAAA', SUPABASE_ORIGIN)).toBeNull()
     expect(safeImageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/a/b.png`, '')).toBeNull()
+  })
+})
+
+describe('safeStorageUrl', () => {
+  it('allows https URLs on the configured Supabase project-documents and portfolio prefixes', () => {
+    const valid1 = `${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/abc123/Architecture.pdf`
+    const valid2 = `${SUPABASE_ORIGIN}/storage/v1/object/public/portfolio/xyz789/resume.docx`
+    expect(safeStorageUrl(valid1, SUPABASE_ORIGIN)).toBe(valid1)
+    expect(safeStorageUrl(valid2, SUPABASE_ORIGIN)).toBe(valid2)
+  })
+
+  it('rejects non-https, other hosts, non-allowed prefixes, traversal, and empty paths', () => {
+    expect(
+      safeStorageUrl('http://anjihgkdkiipmrafevan.supabase.co/storage/v1/object/public/project-documents/a/b.pdf', SUPABASE_ORIGIN),
+    ).toBeNull()
+    expect(
+      safeStorageUrl('https://evil.example.com/storage/v1/object/public/project-documents/a/b.pdf', SUPABASE_ORIGIN),
+    ).toBeNull()
+    expect(
+      safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/avatars/me.png`, SUPABASE_ORIGIN),
+    ).toBeNull()
+    expect(
+      safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/../../private/secret.pdf`, SUPABASE_ORIGIN),
+    ).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/portfolio/`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl('javascript:alert(1)', SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl('data:application/pdf;base64,AAAA', SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/a/b.pdf`, '')).toBeNull()
+    // Control characters
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/a/\u0007evil.pdf`, SUPABASE_ORIGIN)).toBeNull()
   })
 })
 

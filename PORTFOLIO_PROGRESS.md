@@ -149,7 +149,165 @@ Checks run after `npm run build`:
 
 ---
 
+## Task 8 — PART B1: Project Action Buttons — Root Cause Analysis
+
+### B1 Findings
+
+| Possible Cause | Status | Details |
+|---|---|---|
+| (a) Tolerant parser dropping `github_url`, `live_url`, `files` | ❌ NOT the cause | Schema in `src/lib/schemas.ts` correctly defines all three fields. `projectFileSchema` includes `name`, `url`, `path`, `type`. The `tolerantArray` helper skips malformed items but keeps valid ones. |
+| (b) `safeUrl` / `safeImageUrl` / storage-host filter rejecting normal values | ✅ PARTIAL CAUSE | **Critical issue**: `ProjectCaseStudy.tsx` uses `safeImageUrl()` for document files (line 19-23). `safeImageUrl()` only allows URLs under `/storage/v1/object/public/` on the Supabase host — but it is designed for *images*. Document files (PDF, DOCX, etc.) may be served from the same storage buckets (`project-documents/`, `portfolio/`) but `safeImageUrl()` does not validate by file type — it only validates the URL structure. However, the prompt requires a new `safeStorageUrl()` helper that explicitly allows `project-documents/` and `portfolio/` prefixes. Also, `github_url` and `live_url` use `safeUrl()` with `allowMailtoTel: false` which correctly allows http(s) URLs. |
+| (c) CSS hiding buttons at some breakpoint or making them invisible | ❌ NOT the cause | CSS in `src/index.css` has no rules hiding action buttons. Buttons in `ProjectCaseStudy.tsx` use visible classes (`border border-line bg-surface`, `text-muted`, etc.). |
+| (d) Data itself being null/empty (seed left fields empty) | ✅ LIKELY CAUSE | The seed/admin data likely has empty `github_url`, `live_url`, and `files` arrays. The code correctly renders nothing when data is missing (no empty box rendered). |
+
+### Fixes Needed for B1
+1. **Add `safeStorageUrl()` helper** in `safeUrl.ts` that validates: https, hostname = VITE_SUPABASE_URL hostname, pathname starts with `/storage/v1/object/public/project-documents/` OR `/storage/v1/object/public/portfolio/`.
+2. **Update `ProjectCaseStudy.tsx`** to use `safeStorageUrl()` for document files instead of `safeImageUrl()`.
+3. **Replace icon-only buttons with labeled action buttons** per B2 requirements.
+
+---
+
+## Task 9 — PART C1: Admin Coverage Audit Table
+
+| Admin Page | Tables/Columns Edited | Portfolio Render Location | Status / Notes |
+|---|---|---|---|
+| **Site & Hero** | `settings.logo_text`, `brand_name`, `nav_cta_label`, `hero.*` (ghost_word, roles[], tagline, cta_primary, cta_secondary, chips_left/right, stats[]), `footer.*`, `theme.*`, `seo.*` | Navbar (logo, brand, CTA), Hero (avatar, ghost word, name, roles, tagline, CTAs, chips, stats), Footer (blurb, copyright, status), whole-site theme & SEO | ✅ Rendered |
+| **Profile + Social Links** | `profile.*` (full_name, headline, summary, email, phone, location, avatar_url, resume_url), `social_links[]` (label, url, icon) | Hero (name), About (summary), Contact (email, phone, location, social links, resume), Footer (roles) | ✅ Rendered |
+| **About** | `sections[about]` (eyebrow, title, subtitle, content: overview_title, competencies_title, highlights[]), `overview_rows[]`, `competencies[]` | AboutSection: left column (overview card, summary), right column (competencies grid, highlights tiles) | ✅ Rendered |
+| **Projects** | `projects[]` (id, kicker, title, summary, outcome, tagline, bullets[], tech[], github_url, live_url, cover_url, files[], featured), `sections[projects].content.archive_button` | ProjectsSection (featured only, N of M), ProjectsArchivePage (all, with covers), ProjectCaseStudy (details, action buttons, documents) | ✅ Rendered (B2 adds labeled action buttons for github, live, documents) |
+| **Skills** | `skill_domains[]` (title, tools[], status), `sections[skills]` | SkillsSection: 3/2/1 column grid of domain cells with tool chips | ✅ Rendered |
+| **Education** | `education[]` (degree, institution, score_label, score, note), `sections[education]` | EducationSection: rows with degree/institution, score badge, note | ✅ Rendered |
+| **Certifications** | `certifications[]` (title, issuer, start_date, end_date, credential_url, featured), `sections[certifications].content.archive_button` | CertificationsSection (featured, N of M), CertificationsArchivePage (all), CertificationRow (credential link) | ✅ Rendered |
+| **Publications** | `publications[]` (title, venue, published_on, summary, reference, url), `sections[publications]` | PublicationsSection: rows with venue, date, summary, reference, link (hidden unless owner enables via section show_in_nav) | ✅ Rendered (section hidden by default) |
+| **Sections (Custom)** | `sections[]` of type `rich_text`, `cards`, `gallery` with respective content | RichTextSection, CardsSection, GallerySection | ✅ Rendered |
+| **Theme** | `settings.theme` (default_mode, fonts.heading/mono, dark/light palettes) | Applied globally via `theme.ts` to CSS variables on `<html>`; lazy font loading | ✅ Rendered |
+
+### Gaps / Open Questions
+| Gap | Description | Resolution |
+|---|---|---|
+| Project cover images on main page | `projects[].cover_url` exists in data but `ProjectsSection` passes `showCover=false` to `ProjectCaseStudy`; only archive page uses `showCover=true` | **Open question**: Should main page featured case studies also show cover images? Design shows covers only on archive. |
+| Theme fonts & default mode | Admin can edit `theme.fonts.heading`, `theme.fonts.mono`, `theme.default_mode`; portfolio applies them via `theme.ts` | ✅ Works — but font loading is lazy by chosen name from `font-options.txt`. Need to confirm admin font list matches. |
+| SEO title/description | `settings.seo.title`, `settings.seo.description` | ✅ Applied at runtime via `applyDocumentSeo()` in ContentProvider. No static build-time values. |
+| Social link icons | `social_links[].icon` (string) | ✅ Mapped in `ContactSection.getSocialIcon()`; unknown icons fall back to Globe. |
+| Hidden Publications section toggle | `sections[].show_in_nav` controls nav visibility but Publications section also needs a visibility flag | Publications type is rendered if section exists; `show_in_nav` only controls navbar link. Admin would need to delete the section to hide it entirely. **Open question**. |
+| Footer fields | `settings.footer.blurb`, `index_title`, `direct_title`, `status_label`, `copyright` | ✅ Rendered in Footer component. |
+| Section custom content types | `rich_text.body`, `cards.items[]`, `gallery.images[]` | ✅ Rendered via respective section components. |
+
+---
+
+## Task 10 — PART C2: Live Update "Content Updated" Pill
+
+### Implementation
+- **ContentProvider.tsx**: Added `contentUpdateTrigger` state (incremented on each successful live fetch after initial load). Exposed via `ContentContext`.
+- **ContentUpdatedPill.tsx**: New component that watches `contentUpdateTrigger`, shows a pill for 2 seconds with `aria-live="polite"`, `aria-atomic="true"`, fade-in animation. Respects `prefers-reduced-motion` (no animation, immediate show/hide).
+- **index.css**: Added `@keyframes fade-in` and `.animate-fade-in` class; disabled under reduced motion.
+- **App.tsx**: Renders `<ContentUpdatedPill />` at the bottom of the layout (after Footer, fixed position bottom-right).
+- **Behavior**: Never shows on first load (initial load from cache/snapshot/live). Shows on subsequent realtime-triggered refetch, polling refetch, or visibility-change refetch. No layout shift (fixed position).
+
+### Verification
+- Realtime UPDATE on `content_version` → debounced 500ms → throttled min 2s → `loadLiveContent()` → `setContent()` → `contentUpdateTrigger++` → pill appears → fades after 2s.
+- Polling fallback (60s, visible tab only) → same path → pill appears.
+- Visibility change (>5 min hidden) → refetch → pill appears.
+- First load (from cache/snapshot/initial live) → `isInitialLoadRef.current = true` → no pill.
+
+---
+
+## Task 11 — PART C3: `scripts/check-content.mjs` and `npm run check:content`
+
+### Implementation
+- **scripts/check-content.mjs**: Node ESM script that:
+  1. Reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from `process.env`, then `.env.local`, then `.env` (same parser as `scripts/snapshot.mjs`).
+  2. POSTs to `/rest/v1/rpc/get_site_content` with `apikey` header only.
+  3. Prints ONLY counts and titles (never keys):
+     - `version`
+     - `sections` (slug, visible)
+     - `projects` (title, has repo, has live demo, number of documents)
+     - `skills`, `education`, `certifications`, `publications` counts
+     - `profile.avatar_url` and `profile.resume_url` set/unset status
+  4. Exits 0 on success, 1 with clear one-line reason on failure (missing env, invalid URL, network error, non-2xx, invalid JSON, unexpected shape).
+- **package.json**: Added `"check:content": "node scripts/check-content.mjs"` script.
+
+### Verification
+- Run `npm run check:content` locally to verify admin data contains repository URLs and documents.
+
+---
+
+## Task 12 — PART C4: Vercel.json CSP Confirmation
+
+| CSP Directive | Value | Status |
+|---|---|---|
+| `connect-src` | `'self' https://anjihgkdkiipmrafevan.supabase.co wss://anjihgkdkiipmrafevan.supabase.co` | ✅ Allows Supabase HTTPS (REST) and WSS (Realtime) |
+| `img-src` | `'self' data: https://anjihgkdkiipmrafevan.supabase.co` | ✅ Allows Supabase storage host for images/avatars/covers |
+| Admin URL | Not present | ✅ Not added |
+
+No changes needed — CSP already correct.
+
+---
+
 ## Final Checklist — Items Not Verified in Sandbox
+
+> These require the user to run locally:
+
+| Item | Reason cannot verify in sandbox |
+|---|---|
+| `npm run typecheck` passes | Cannot run `tsc` |
+| `npm test` all pass | Cannot run `vitest` |
+| `npm run build` succeeds | Cannot run Vite |
+| `npm run verify:dist` output | Requires `dist/` from a build |
+| `npm audit --audit-level=high` | Requires internet + `node_modules` |
+| Browser visual fidelity | No browser in sandbox |
+| Hash link scroll behaviour from `/projects` | Requires browser |
+| Realtime channel on live Supabase | Requires network + credentials |
+| `npm run check:content` output | Requires live Supabase credentials |
+
+---
+
+## Commands to Run (in order)
+
+```powershell
+Set-Location D:\portfolio\portfolio-site
+
+# 1. Install / sync dependencies
+npm install
+
+# 2. TypeScript type-check
+npm run typecheck
+
+# 3. Unit tests
+npm test
+
+# 4. Lint
+npm run lint
+
+# 5. Build
+npm run build
+
+# 6. Post-build safety
+npm run verify:dist
+
+# 7. Dependency audit
+npm audit --audit-level=high
+
+# 8. Check admin content (requires valid .env.local with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY)
+npm run check:content
+
+# 9. Local preview
+npm run preview
+```
+
+### Manual Checklist (after preview starts)
+1. **Reduced motion**: Emulate `prefers-reduced-motion: reduce` in DevTools (Rendering tab) — confirm nothing moves, pill appears/disappears without animation.
+2. **Scroll through whole page** — verify reveal animations, section headers, cards, project case studies.
+3. **Click every nav link and footer link** — verify smooth scroll, hash update, focus moves to section heading.
+4. **Open `/projects` and use a hash link back to home sections** — verify navigation + scroll.
+5. **Open mobile menu** — verify drawer slides in, focus trap, Escape closes.
+6. **Toggle theme** — verify `theme-transition` class (350ms), icon crossfade/rotate, colors animate.
+7. **Check every project's action buttons**:
+   - Repository button (labeled "Repository", GitHub icon, `target="_blank" rel="noopener noreferrer"`, aria-label includes project title)
+   - Live demo button (labeled "Live demo", external-link icon, same attributes)
+   - Document chips (file-type icon, truncated name with full name in title, extension badge, `safeStorageUrl` validation)
+   - Hostile URLs NOT rendered (javascript:, data:, http:// docs, wrong host, wrong path prefix)
+8. **Edit something in admin site** — watch "Content updated" pill appear for ~2s and new content appear without refresh. — Items Not Verified in Sandbox
 
 > These require the user to run locally:
 

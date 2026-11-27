@@ -11,6 +11,10 @@ const ALLOWED_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:'])
 const HTTP_PROTOCOLS = new Set(['http:', 'https:'])
 const HERO_ANCHOR_RE = /^#[a-z0-9-]{1,60}$/
 const PUBLIC_STORAGE_PREFIX = '/storage/v1/object/public/'
+const ALLOWED_STORAGE_PREFIXES = [
+  '/storage/v1/object/public/project-documents/',
+  '/storage/v1/object/public/portfolio/',
+] as const
 
 function hasControlChars(value: string): boolean {
   for (let i = 0; i < value.length; i += 1) {
@@ -123,4 +127,38 @@ export function safeHeroTarget(value: string | null | undefined): string | null 
 
   if (HERO_ANCHOR_RE.test(trimmed)) return trimmed
   return safeUrl(trimmed)
+}
+
+/**
+ * Validates a stored document/file URL from Supabase storage:
+ * - https: only
+ * - hostname must equal the hostname of VITE_SUPABASE_URL
+ * - normalized pathname must start with /storage/v1/object/public/project-documents/ OR /storage/v1/object/public/portfolio/
+ */
+export function safeStorageUrl(
+  value: string | null | undefined,
+  supabaseUrlOverride?: string,
+): string | null {
+  if (!value || typeof value !== 'string') return null
+  if (hasControlChars(value)) return null
+
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  const allowedHost = getAllowedStorageHostname(supabaseUrlOverride)
+  if (!allowedHost) return null
+
+  try {
+    const parsed = new URL(trimmed)
+    if (parsed.protocol.toLowerCase() !== 'https:') return null
+    if (parsed.hostname.toLowerCase() !== allowedHost) return null
+    const isAllowedPrefix = ALLOWED_STORAGE_PREFIXES.some((prefix) =>
+      parsed.pathname.startsWith(prefix),
+    )
+    if (!isAllowedPrefix) return null
+    if (parsed.pathname.length <= PUBLIC_STORAGE_PREFIX.length) return null
+    return trimmed
+  } catch {
+    return null
+  }
 }

@@ -16,6 +16,7 @@
     "test": "vitest run",
     "audit": "npm audit --audit-level=high",
     "verify:dist": "node scripts/verify-dist.mjs",
+    "check:content": "node scripts/check-content.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

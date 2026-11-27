@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Footer } from './components/Footer'
 import { Navbar } from './components/Navbar'
+import { ContentUpdatedPill } from './components/ContentUpdatedPill'
 import { EmptyView, LoadingView, UnavailableView } from './components/StatusViews'
 import { ContentProvider } from './context/ContentProvider'
 import { useContent } from './context/contentContext'
@@ -53,6 +54,7 @@ export function AppRoutes() {
       </main>
 
       <Footer />
+      <ContentUpdatedPill />
     </div>
   )
 }

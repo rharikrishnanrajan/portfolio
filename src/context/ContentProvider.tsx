@@ -26,6 +26,7 @@ export const REALTIME_DEBOUNCE_MS = 500
 export const REALTIME_MIN_INTERVAL_MS = 2_000
 export const POLL_INTERVAL_MS = 60_000
 export const VISIBILITY_STALE_MS = 5 * 60 * 1000
+export const CONTENT_UPDATED_DISPLAY_MS = 2000
 
 interface InitialState {
   content: SiteContent
@@ -109,12 +110,14 @@ export function ContentProvider({
   const [source, setSource] = useState<ContentSource>(initial.source)
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const [userThemeOverride, setUserThemeOverride] = useState<ThemeMode | undefined>(() => undefined)
+  const [contentUpdateTrigger, setContentUpdateTrigger] = useState<number>(0)
 
   const hasFallbackRef = useRef<boolean>(initial.hasFallback)
   const currentVersionRef = useRef<number>(initial.content.version)
   const activeAbortRef = useRef<AbortController | null>(null)
   const lastFetchAtRef = useRef<number>(0)
   const mountedRef = useRef<boolean>(true)
+  const isInitialLoadRef = useRef<boolean>(true)
 
   const themeMode: ThemeMode = useMemo(() => {
     if (userThemeOverride) return userThemeOverride
@@ -176,6 +179,11 @@ export function ContentProvider({
         setContent(next)
         setSource('live')
         setStatus(hasMeaningfulContent(next) ? 'ready' : 'empty')
+        // Trigger content updated pill on subsequent loads (not initial)
+        if (!isInitialLoadRef.current) {
+          setContentUpdateTrigger((t) => t + 1)
+        }
+        isInitialLoadRef.current = false
       } catch {
         if (!mountedRef.current || controller.signal.aborted) return
         if (!hasFallbackRef.current) {
@@ -366,6 +374,7 @@ export function ContentProvider({
       toggleThemeMode,
       retry,
       sendContactMessage,
+      contentUpdateTrigger,
     }),
     [
       content,
@@ -377,6 +386,7 @@ export function ContentProvider({
       toggleThemeMode,
       retry,
       sendContactMessage,
+      contentUpdateTrigger,
     ],
   )
 

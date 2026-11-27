@@ -15,6 +15,7 @@ export interface ContentContextValue {
   toggleThemeMode: () => void
   retry: () => void
   sendContactMessage: (payload: ContactMessageInput) => Promise<ContactInsertResult>
+  contentUpdateTrigger: number
 }
 
 export const ContentContext = createContext<ContentContextValue | null>(null)

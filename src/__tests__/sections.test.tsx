@@ -201,14 +201,14 @@ function makePortfolioContent(): SiteContent {
         files: [
           {
             name: 'Architecture.pdf',
-            url: 'https://example.supabase.co/storage/v1/object/public/docs/arch.pdf',
-            path: 'docs/arch.pdf',
+            url: 'https://example.supabase.co/storage/v1/object/public/project-documents/abc123/Architecture.pdf',
+            path: 'project-documents/abc123/Architecture.pdf',
             type: 'application/pdf',
           },
           {
             name: 'Evil.pdf',
-            url: 'https://evil.example.com/storage/v1/object/public/docs/evil.pdf',
-            path: 'docs/evil.pdf',
+            url: 'https://evil.example.com/storage/v1/object/public/project-documents/evil.pdf',
+            path: 'project-documents/evil.pdf',
             type: 'application/pdf',
           },
         ],
@@ -317,9 +317,14 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
     expect(screen.getByText(/1 OF 2 FEATURED CASE STUDIES/)).toBeTruthy()
     expect(screen.getByText('Multi-Region Deployment')).toBeTruthy()
     expect(screen.queryByText('Secondary Pipeline')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Architecture.pdf' })).toBeTruthy()
-    expect(screen.queryByRole('link', { name: 'Evil.pdf' })).toBeNull()
-    expect(screen.queryByRole('link', { name: /live site/i })).toBeNull()
+    // New labeled action buttons
+    expect(screen.getByRole('link', { name: /Repository for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: /Live demo for Multi-Region Deployment \(opens in a new tab\)/i })).toBeNull()
+    // Document chips: valid file with safeStorageUrl passes, hostile file fails
+    expect(screen.getByRole('link', { name: /Architecture\.pdf for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: /Evil\.pdf for Multi-Region Deployment \(opens in a new tab\)/i })).toBeNull()
+    // Extension badge and file type icon rendered
+    expect(screen.getByText('PDF')).toBeTruthy()
     expect(
       screen.getByRole('link', { name: /View All Projects Archive \(2\)/i }).getAttribute('href'),
     ).toBe('/projects')
@@ -361,6 +366,10 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
     ).toBeTruthy()
     expect(screen.getByText('Secondary Pipeline')).toBeTruthy()
     expect(screen.getByRole('img', { name: 'Multi-Region Deployment' })).toBeTruthy()
+    // Archive page also shows labeled action buttons
+    expect(screen.getByRole('link', { name: /Repository for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Architecture\.pdf for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
+    expect(screen.getByText('PDF')).toBeTruthy()
     expect(screen.getByRole('link', { name: /Back to portfolio/i }).getAttribute('href')).toBe('/')
     first.unmount()
 
