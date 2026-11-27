@@ -7,6 +7,7 @@ type CoverVariant = 'natural' | 'cropped'
 interface ProjectCoverProps {
   project: ProjectItem
   variant?: CoverVariant
+  className?: string
 }
 
 /**
@@ -21,7 +22,7 @@ interface ProjectCoverProps {
  *              object-fit: contain with bg-surface background, centered.
  *              Optional anchor wrapper with zoom-in cursor and hover border color change.
  */
-export function ProjectCover({ project, variant = 'cropped' }: ProjectCoverProps) {
+export function ProjectCover({ project, variant = 'cropped', className }: ProjectCoverProps) {
   const [coverFailed, setCoverFailed] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showShimmer, setShowShimmer] = useState(true)
@@ -100,6 +101,7 @@ export function ProjectCover({ project, variant = 'cropped' }: ProjectCoverProps
   const wrapperClasses = `
     relative overflow-hidden border border-line bg-surface
     ${isNatural ? 'w-full box-border' : 'aspect-[16/9]'}
+    ${className ? ` ${className}` : ''}
   `
 
   if (isNatural) {
