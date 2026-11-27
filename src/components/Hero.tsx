@@ -56,9 +56,9 @@ export function Hero() {
           {hero.ghost_word ? (
             <div
               aria-hidden="true"
-              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2 text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/2.5 whitespace-nowrap animate-float"
+              className="pointer-events-none select-none absolute inset-x-0 top-[52%] text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/2.5 whitespace-nowrap animate-float"
               style={{
-                transform: `translate(-50%, -50%) translateY(${ghostY}px)`,
+                transform: `translateY(calc(-50% + ${ghostY}px))`,
               }}
             >
               {hero.ghost_word}
@@ -67,7 +67,7 @@ export function Hero() {
 
           <div className="relative z-10 flex flex-col items-center text-center">
             {/* Avatar with staggered entrance and glow pulse (A6) */}
-            <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden border-[3px] border-accent/70 shadow-[0_0_60px_rgb(var(--accent)/0.45),0_0_120px_rgb(var(--accent)/0.18)] bg-surface flex items-center justify-center animate-fade-up reveal-stagger-1" style={{ '--reveal-i': 0 }}>
+            <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden border-[3px] border-accent/70 shadow-[0_0_60px_rgb(var(--accent)/0.45),0_0_120px_rgb(var(--accent)/0.18)] bg-surface flex items-center justify-center animate-fade-up reveal-stagger-1" style={{ '--reveal-i': 0 }}>
               {showAvatarImg && safeAvatar ? (
                 <img
                   src={safeAvatar}

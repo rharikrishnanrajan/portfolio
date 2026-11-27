@@ -21,11 +21,16 @@ class MockIntersectionObserver {
   root = null
   rootMargin = ''
   thresholds = []
+  callback: IntersectionObserverCallback
+  options?: IntersectionObserverInit
 
   constructor(
-    public callback: IntersectionObserverCallback,
-    public options?: IntersectionObserverInit
-  ) {}
+    callback: IntersectionObserverCallback,
+    options?: IntersectionObserverInit
+  ) {
+    this.callback = callback
+    this.options = options
+  }
 
   observe = vi.fn()
   unobserve = vi.fn()
