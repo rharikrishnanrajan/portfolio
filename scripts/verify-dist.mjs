@@ -38,8 +38,7 @@ function walkDir(dir, cb) {
 
 if (!existsSync(DIST_DIR)) {
   fail('dist/ directory does not exist — run npm run build first')
-  process.exitCode = 1
-  return
+  process.exit(1)
 }
 
 const allFiles = []
@@ -118,7 +117,6 @@ if (existsSync(assetsDir)) {
 
 if (failures > 0) {
   console.log(`\n${failures} check(s) FAILED.`)
-  process.exitCode = 1
-  return
+  process.exit(1)
 }
 console.log('\nAll checks PASSED.')

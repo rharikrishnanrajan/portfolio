@@ -4,6 +4,7 @@ import { useReducedMotion } from './useReducedMotion'
 // Shared IntersectionObserver for all reveal elements (A2, A12)
 let sharedObserver: IntersectionObserver | null = null
 const observedElements = new Set<HTMLElement>()
+const revealCallbacks = new WeakMap<HTMLElement, () => void>()
 
 function getSharedObserver(): IntersectionObserver {
   if (sharedObserver) return sharedObserver
@@ -23,6 +24,8 @@ function getSharedObserver(): IntersectionObserver {
           }
           sharedObserver?.unobserve(el)
           observedElements.delete(el)
+          revealCallbacks.get(el)?.()
+          revealCallbacks.delete(el)
         }
       }
     },
@@ -64,16 +67,18 @@ export function useReveal<T extends HTMLElement>(): { ref: React.RefObject<T | n
     }
 
     observedElements.add(node)
+    revealCallbacks.set(node, () => setIsVisible(true))
     const observer = getSharedObserver()
     observer.observe(node)
 
     return () => {
       observer.unobserve(node)
       observedElements.delete(node)
+      revealCallbacks.delete(node)
     }
   }, [isVisible, reducedMotion])
 
-  return { ref, isVisible }
+  return { ref, isVisible: isVisible || reducedMotion }
 }
 
 // Export for cleanup on unmount (A12)

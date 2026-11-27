@@ -1,7 +1,8 @@
-import { ExternalLink, FileText, GitBranch, File, FileCode, FileImage, FileSpreadsheet, FileType, FileVideo, FileAudio } from 'lucide-react'
+import { ExternalLink, FileText } from 'lucide-react'
 import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
+import { GithubMark } from '../GithubMark'
 import { ProjectCover } from '../ProjectCover'
-import type { ProjectItem, ProjectFile } from '../../types/content'
+import type { ProjectItem } from '../../types/content'
 
 export interface ProjectCaseStudyProps {
   project: ProjectItem
@@ -9,46 +10,10 @@ export interface ProjectCaseStudyProps {
   showCover?: boolean
 }
 
-function getFileTypeIcon(file: ProjectFile): React.ReactElement {
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-  const mime = file.type?.toLowerCase() ?? ''
+const MAX_DOCUMENT_BUTTONS = 3
 
-  if (['pdf'].includes(ext) || mime.includes('pdf')) {
-    return <FileText className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-  }
-  if (['doc', 'docx', 'rtf', 'txt', 'md'].includes(ext) || mime.includes('word') || mime.includes('text')) {
-    return <FileType className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-  }
-  if (['ppt', 'pptx', 'odp'].includes(ext) || mime.includes('presentation') || mime.includes('powerpoint')) {
-    return <File className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-  }
-  if (['xls', 'xlsx', 'csv', 'ods'].includes(ext) || mime.includes('spreadsheet') || mime.includes('excel')) {
-    return <FileSpreadsheet className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-  }
-  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'avif', 'bmp'].includes(ext) || mime.startsWith('image/')) {
-    return <FileImage className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-  }
-  if (['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext) || mime.startsWith('video/')) {
-    return <FileVideo className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-  }
-  if (['mp3', 'wav', 'ogg', 'flac', 'aac'].includes(ext) || mime.startsWith('audio/')) {
-    return <FileAudio className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-  }
-  if (['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'go', 'rs', 'cpp', 'c', 'h', 'cs', 'php', 'rb', 'swift', 'kt', 'json', 'yaml', 'yml', 'toml', 'xml', 'html', 'css', 'scss', 'sh', 'ps1', 'sql'].includes(ext) || mime.includes('code') || mime.includes('script')) {
-    return <FileCode className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-  }
-  return <File className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-}
-
-function getFileExtensionBadge(file: ProjectFile): string {
-  const ext = file.name.split('.').pop()?.toLowerCase()
-  return ext ? ext.toUpperCase() : 'FILE'
-}
-
-function truncateFileName(name: string, maxLength = 36): string {
-  if (name.length <= maxLength) return name
-  return name.slice(0, maxLength - 1) + '…'
-}
+const ICON_BUTTON_CLASS =
+  'inline-flex h-10 w-10 max-sm:h-11 max-sm:w-11 items-center justify-center border border-line bg-surface text-muted transition-[border-color,color,transform] duration-[var(--dur-fast)] ease-[var(--ease-out)] hover:border-accent hover:text-ink hover:-translate-y-px focus-visible:border-accent focus-visible:text-ink focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0'
 
 export function ProjectCaseStudy({ project, index, showCover = false }: ProjectCaseStudyProps) {
   const safeGithub = safeUrl(project.github_url, { allowMailtoTel: false })
@@ -61,7 +26,9 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
     })
     .filter((file): file is NonNullable<typeof file> => file !== null)
 
-  const hasActions = safeGithub || safeLive || safeFiles.length > 0
+  const visibleFiles = safeFiles.slice(0, MAX_DOCUMENT_BUTTONS)
+  const overflowCount = safeFiles.length - visibleFiles.length
+  const hasActions = Boolean(safeGithub || safeLive || safeFiles.length > 0)
   const hasCover = showCover && project.cover_url
 
   return (
@@ -107,24 +74,23 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
         </div>
 
         <div className="lg:col-span-8 space-y-6">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink leading-tight">
               {project.title}
             </h3>
 
             {hasActions ? (
-              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 {safeGithub ? (
                   <a
                     href={safeGithub}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Repository for ${project.title} (opens in a new tab)`}
-                    className="btn-secondary h-10 px-4 min-w-[120px] text-sm btn-press"
+                    aria-label={`GitHub repository for ${project.title} (opens in a new tab)`}
+                    title={`GitHub repository for ${project.title} (opens in a new tab)`}
+                    className={ICON_BUTTON_CLASS}
                   >
-                    <GitBranch className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    <span className="hidden sm:inline">Repository</span>
-                    <span className="sm:hidden" aria-hidden="true">Repo</span>
+                    <GithubMark className="h-5 w-5" />
                   </a>
                 ) : null}
                 {safeLive ? (
@@ -132,13 +98,36 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
                     href={safeLive}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Live demo for ${project.title} (opens in a new tab)`}
-                    className="btn-secondary h-10 px-4 min-w-[120px] text-sm btn-press"
+                    aria-label={`Live demo of ${project.title} (opens in a new tab)`}
+                    title={`Live demo of ${project.title} (opens in a new tab)`}
+                    className={ICON_BUTTON_CLASS}
                   >
-                    <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    <span className="hidden sm:inline">Live demo</span>
-                    <span className="sm:hidden" aria-hidden="true">Demo</span>
+                    <ExternalLink className="h-5 w-5" aria-hidden="true" />
                   </a>
+                ) : null}
+                {visibleFiles.map((file, fileIdx) => {
+                  const docLabel = `Open document ${file.name} for ${project.title} (opens in a new tab)`
+                  return (
+                    <a
+                      key={`${file.url}-${fileIdx}`}
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={docLabel}
+                      title={docLabel}
+                      className={ICON_BUTTON_CLASS}
+                    >
+                      <FileText className="h-5 w-5" aria-hidden="true" />
+                    </a>
+                  )
+                })}
+                {overflowCount > 0 ? (
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex h-10 w-10 max-sm:h-11 max-sm:w-11 items-center justify-center border border-line bg-surface font-mono text-xs text-muted select-none"
+                  >
+                    +{overflowCount}
+                  </span>
                 ) : null}
               </div>
             ) : null}
@@ -182,31 +171,6 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
                 </li>
               ))}
             </ul>
-          ) : null}
-
-          {safeFiles.length > 0 ? (
-            <div className="pt-2 flex flex-wrap items-center gap-2 animate-fade-up" style={{ '--reveal-i': 6 }}>
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-                Documents ({safeFiles.length}):
-              </span>
-              {safeFiles.map((file, fileIdx) => (
-                <a
-                  key={`${file.url}-${fileIdx}`}
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${file.name} for ${project.title} (opens in a new tab)`}
-                  title={file.name}
-                  className="inline-flex items-center gap-1.5 border border-line bg-surface px-3 py-1.5 font-mono text-[10px] text-ink hover:border-accent transition-colors hover:shadow-[0_4px_12px_rgb(var(--accent)/0.15)] btn-press"
-                >
-                  {getFileTypeIcon(file)}
-                  <span className="truncate max-w-[160px]">{truncateFileName(file.name)}</span>
-                  <span className="px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-muted border border-line bg-surface/50 rounded">
-                    {getFileExtensionBadge(file)}
-                  </span>
-                </a>
-              ))}
-            </div>
           ) : null}
         </div>
       </div>

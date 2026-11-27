@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Footer } from './components/Footer'
@@ -19,14 +19,20 @@ function shouldUseSmoothScroll(): boolean {
   return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function ScrollProgressAndBackToTop() {
-  const [scrollProgress, setScrollProgress] = useState(0)
+export function ScrollProgressAndBackToTop() {
+  const progressBarRef = useRef<HTMLDivElement | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const location = useLocation()
 
-  // Initialize scroll progress on mount (A4)
+  // Initialize scroll progress on mount (A4) — updates CSS variable via ref without React state per scroll
   useEffect(() => {
-    const cleanup = initScrollProgress(setScrollProgress)
+    const el = progressBarRef.current
+    const cleanup = initScrollProgress((progress) => {
+      if (el) {
+        el.style.setProperty('--scroll-progress', String(progress))
+        el.setAttribute('aria-valuenow', String(Math.round(progress * 100)))
+      }
+    })
     return cleanup
   }, [])
 
@@ -56,9 +62,10 @@ function ScrollProgressAndBackToTop() {
     <>
       {/* Scroll progress bar (A4) */}
       <div
+        ref={progressBarRef}
         className="scroll-progress-bar"
         role="progressbar"
-        aria-valuenow={Math.round(scrollProgress * 100)}
+        aria-valuenow={0}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="Page scroll progress"

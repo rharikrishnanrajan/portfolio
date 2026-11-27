@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { AppRoutes } from '../App'
 import { RegisteredSection } from '../components/sections/SectionRegistry'
+import { ProjectCaseStudy } from '../components/sections/ProjectCaseStudy'
 import { ProjectCover } from '../components/ProjectCover'
 import { ContentProvider } from '../context/ContentProvider'
 import { EMPTY_SITE_CONTENT } from '../lib/schemas'
@@ -318,14 +319,18 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
     expect(screen.getByText(/1 OF 2 FEATURED CASE STUDIES/)).toBeTruthy()
     expect(screen.getByText('Multi-Region Deployment')).toBeTruthy()
     expect(screen.queryByText('Secondary Pipeline')).toBeNull()
-    // New labeled action buttons
-    expect(screen.getByRole('link', { name: /Repository for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
-    expect(screen.queryByRole('link', { name: /Live demo for Multi-Region Deployment \(opens in a new tab\)/i })).toBeNull()
-    // Document chips: valid file with safeStorageUrl passes, hostile file fails
-    expect(screen.getByRole('link', { name: /Architecture\.pdf for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
-    expect(screen.queryByRole('link', { name: /Evil\.pdf for Multi-Region Deployment \(opens in a new tab\)/i })).toBeNull()
-    // Extension badge and file type icon rendered
-    expect(screen.getByText('PDF')).toBeTruthy()
+    // Icon-only action buttons (no visible text, no Documents label or extension badge)
+    const repoLink = screen.getByRole('link', { name: 'GitHub repository for Multi-Region Deployment (opens in a new tab)' })
+    expect(repoLink).toBeTruthy()
+    expect(repoLink.textContent?.trim()).toBe('')
+    expect(screen.queryByRole('link', { name: 'Live demo of Multi-Region Deployment (opens in a new tab)' })).toBeNull()
+    // Document icon button: valid file with safeStorageUrl passes, hostile file fails
+    const docLink = screen.getByRole('link', { name: 'Open document Architecture.pdf for Multi-Region Deployment (opens in a new tab)' })
+    expect(docLink).toBeTruthy()
+    expect(docLink.textContent?.trim()).toBe('')
+    expect(screen.queryByRole('link', { name: 'Open document Evil.pdf for Multi-Region Deployment (opens in a new tab)' })).toBeNull()
+    expect(screen.queryByText(/Documents \(/i)).toBeNull()
+    expect(screen.queryByText('PDF')).toBeNull()
     expect(
       screen.getByRole('link', { name: /View All Projects Archive \(2\)/i }).getAttribute('href'),
     ).toBe('/projects')
@@ -368,10 +373,10 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
     expect(screen.getByText('Secondary Pipeline')).toBeTruthy()
     // Cover image on archive page (now uses shared ProjectCover component)
     expect(screen.getByRole('img', { name: 'Multi-Region Deployment preview' })).toBeTruthy()
-    // Archive page also shows labeled action buttons
-    expect(screen.getByRole('link', { name: /Repository for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
-    expect(screen.getByRole('link', { name: /Architecture\.pdf for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
-    expect(screen.getByText('PDF')).toBeTruthy()
+    // Archive page also shows icon-only action buttons
+    expect(screen.getByRole('link', { name: 'GitHub repository for Multi-Region Deployment (opens in a new tab)' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Open document Architecture.pdf for Multi-Region Deployment (opens in a new tab)' })).toBeTruthy()
+    expect(screen.queryByText('PDF')).toBeNull()
     expect(screen.getByRole('link', { name: /Back to portfolio/i }).getAttribute('href')).toBe('/')
     first.unmount()
 
@@ -638,5 +643,135 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       />,
     )
     expect(container.firstChild).toBeNull()
+  })
+
+  describe('ProjectCaseStudy action buttons', () => {
+    const VALID_DOC_BASE = 'https://example.supabase.co/storage/v1/object/public/project-documents/proj-1'
+
+    function renderCaseStudy(overrides: Partial<SiteContent['projects'][number]>) {
+      const base = makePortfolioContent().projects[0]
+      return render(
+        <ProjectCaseStudy
+          project={{
+            ...base,
+            github_url: null,
+            live_url: null,
+            files: [],
+            ...overrides,
+          }}
+          index={0}
+        />,
+      )
+    }
+
+    it('renders repo only with icon-only link, matching title, target and rel', () => {
+      const { container } = renderCaseStudy({
+        title: 'Repo Only',
+        github_url: 'https://github.com/example/repo',
+      })
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(1)
+      expect(links[0].getAttribute('aria-label')).toBe('GitHub repository for Repo Only (opens in a new tab)')
+      expect(links[0].getAttribute('title')).toBe('GitHub repository for Repo Only (opens in a new tab)')
+      expect(links[0].getAttribute('target')).toBe('_blank')
+      expect(links[0].getAttribute('rel')).toBe('noopener noreferrer')
+      expect(links[0].textContent?.trim()).toBe('')
+      expect(container.querySelector('svg[aria-hidden="true"]')).toBeTruthy()
+    })
+
+    it('renders live demo only with icon-only link', () => {
+      renderCaseStudy({
+        title: 'Live Only',
+        live_url: 'https://demo.example.com',
+      })
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(1)
+      expect(links[0].getAttribute('aria-label')).toBe('Live demo of Live Only (opens in a new tab)')
+      expect(links[0].getAttribute('title')).toBe('Live demo of Live Only (opens in a new tab)')
+      expect(links[0].getAttribute('target')).toBe('_blank')
+      expect(links[0].getAttribute('rel')).toBe('noopener noreferrer')
+      expect(links[0].textContent?.trim()).toBe('')
+    })
+
+    it('renders document only with icon-only link', () => {
+      renderCaseStudy({
+        title: 'Doc Only',
+        files: [{ name: 'Spec.pdf', url: `${VALID_DOC_BASE}/Spec.pdf`, path: 'project-documents/proj-1/Spec.pdf', type: 'application/pdf' }],
+      })
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(1)
+      expect(links[0].getAttribute('aria-label')).toBe('Open document Spec.pdf for Doc Only (opens in a new tab)')
+      expect(links[0].getAttribute('title')).toBe('Open document Spec.pdf for Doc Only (opens in a new tab)')
+      expect(links[0].getAttribute('target')).toBe('_blank')
+      expect(links[0].getAttribute('rel')).toBe('noopener noreferrer')
+      expect(links[0].textContent?.trim()).toBe('')
+    })
+
+    it('renders all three button types in order with no visible text', () => {
+      renderCaseStudy({
+        title: 'All Three',
+        github_url: 'https://github.com/example/all',
+        live_url: 'https://all.example.com',
+        files: [{ name: 'Guide.pdf', url: `${VALID_DOC_BASE}/Guide.pdf`, path: 'project-documents/proj-1/Guide.pdf', type: 'application/pdf' }],
+      })
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(3)
+      expect(links[0].getAttribute('aria-label')).toBe('GitHub repository for All Three (opens in a new tab)')
+      expect(links[1].getAttribute('aria-label')).toBe('Live demo of All Three (opens in a new tab)')
+      expect(links[2].getAttribute('aria-label')).toBe('Open document Guide.pdf for All Three (opens in a new tab)')
+      for (const link of links) {
+        expect(link.textContent?.trim()).toBe('')
+        expect(link.getAttribute('target')).toBe('_blank')
+        expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+      }
+    })
+
+    it('renders no button row when project has no valid links or files', () => {
+      const { container } = renderCaseStudy({ title: 'No Actions' })
+      expect(screen.queryAllByRole('link')).toHaveLength(0)
+      const heading = screen.getByRole('heading', { level: 3, name: 'No Actions' })
+      expect(heading.parentElement?.children).toHaveLength(1)
+      expect(container.querySelector('[aria-hidden="true"]')).toBeNull()
+    })
+
+    it('caps document buttons at 3 and shows non-interactive aria-hidden +N indicator', () => {
+      const files = ['One.pdf', 'Two.pdf', 'Three.pdf', 'Four.pdf', 'Five.pdf'].map((name) => ({
+        name,
+        url: `${VALID_DOC_BASE}/${name}`,
+        path: `project-documents/proj-1/${name}`,
+        type: 'application/pdf',
+      }))
+      const { container } = renderCaseStudy({ title: 'Many Docs', files })
+
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(3)
+      expect(links.map((l) => l.getAttribute('aria-label'))).toEqual([
+        'Open document One.pdf for Many Docs (opens in a new tab)',
+        'Open document Two.pdf for Many Docs (opens in a new tab)',
+        'Open document Three.pdf for Many Docs (opens in a new tab)',
+      ])
+      expect(screen.queryByRole('link', { name: /Four\.pdf/ })).toBeNull()
+
+      const overflow = container.querySelector('span[aria-hidden="true"]')
+      expect(overflow?.textContent).toBe('+2')
+      expect(overflow?.tagName).toBe('SPAN')
+    })
+
+    it('rejects hostile URLs for github, live, and document files', () => {
+      renderCaseStudy({
+        title: 'Hostile',
+        github_url: 'javascript:alert(1)',
+        live_url: 'data:text/html,<script>alert(1)</script>',
+        files: [
+          { name: 'js.pdf', url: 'javascript:alert(1)', path: 'a', type: 'application/pdf' },
+          { name: 'data.pdf', url: 'data:application/pdf;base64,AA==', path: 'b', type: 'application/pdf' },
+          { name: 'http.pdf', url: 'http://example.supabase.co/storage/v1/object/public/project-documents/a.pdf', path: 'c', type: 'application/pdf' },
+          { name: 'other-host.pdf', url: 'https://evil.example.com/storage/v1/object/public/project-documents/a.pdf', path: 'd', type: 'application/pdf' },
+          { name: 'bad-prefix.pdf', url: 'https://example.supabase.co/storage/v1/object/public/avatars/a.pdf', path: 'e', type: 'application/pdf' },
+          { name: 'empty-obj.pdf', url: 'https://example.supabase.co/storage/v1/object/public/project-documents/', path: 'f', type: 'application/pdf' },
+        ],
+      })
+      expect(screen.queryAllByRole('link')).toHaveLength(0)
+    })
   })
 })

@@ -62,17 +62,20 @@ export function scrollToSection(id: string): void {
   url.hash = id
   history.replaceState(null, '', url.toString())
 
-  // Scroll to element
-  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  // Scroll to element (respecting reduced motion)
+  element.scrollIntoView({
+    behavior: shouldUseSmoothScroll() ? 'smooth' : 'auto',
+    block: 'start',
+  })
 
   // Focus the section heading for accessibility
   setTimeout(() => {
     const heading = element.querySelector('h1, h2, h3, [role="heading"]')
-    if (heading instanceof HTMLElement) {
-      heading.focus({ preventScroll: true })
-    } else {
-      element.focus({ preventScroll: true })
+    const target = heading instanceof HTMLElement ? heading : element
+    if (!target.hasAttribute('tabindex')) {
+      target.setAttribute('tabindex', '-1')
     }
+    target.focus({ preventScroll: true })
   }, 100) // Wait for scroll to complete
 }
 

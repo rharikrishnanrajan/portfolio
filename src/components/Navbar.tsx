@@ -105,12 +105,9 @@ export function Navbar() {
   // Update active link highlight position (A5)
   useEffect(() => {
     if (!isHome || !activeSlug) {
-      setActiveLinkRect(null)
       return
     }
-    // Defer measurement to avoid synchronous layout in effect
-    // eslint-disable-next-line react/set-state-in-effect
-    requestAnimationFrame(() => {
+    const rafId = requestAnimationFrame(() => {
       const activeLink = document.querySelector(
         `nav a[href="#${activeSlug}"]`
       ) as HTMLAnchorElement | null
@@ -125,6 +122,7 @@ export function Navbar() {
         } as DOMRect)
       }
     })
+    return () => cancelAnimationFrame(rafId)
   }, [activeSlug, isHome, navSections])
 
   // Scroll-based navbar styling (A5)
@@ -228,7 +226,7 @@ export function Navbar() {
             ref={navPillRef}
           >
             {/* Sliding active indicator (A5) */}
-            {activeLinkRect && (
+            {isHome && activeSlug && activeLinkRect && (
               <div
                 className="absolute top-1.5 left-0 rounded-full bg-accent/15 transition-transform duration-300 ease-out pointer-events-none"
                 style={{

@@ -1,6 +1,6 @@
 # Portfolio Build — Progress Log
 
-> Last updated: 2026-11-27
+> Last updated: 2026-11-27 (icon-only action buttons refactor)
 
 ---
 
@@ -20,7 +20,7 @@
 | A10: Skeleton loading | ✅ | `src/components/StatusViews.tsx`, `src/index.css` |
 | A11: Reduced-motion block in CSS + `useReducedMotion` hook | ✅ | `src/index.css`, `src/hooks/useReducedMotion.ts` |
 | A12: Performance rules (throttled listeners, will-change, cleanup) | ✅ | `src/hooks/useReveal.ts`, `src/context/ContentProvider.tsx`, `src/App.tsx`, `src/components/Navbar.tsx` |
-| A13: Tests for motion system | ⚠️ NOT DONE | (no file changes) |
+| A13: Tests for motion system | ✅ | `src/__tests__/motion.test.tsx` (plus fixes in `src/lib/scroll.ts`, `src/App.tsx`, `src/hooks/useReveal.ts`, `src/components/Navbar.tsx`) |
 | D1: `verify:dist` passes, bundle budget, no source maps | ⚠️ NOT DONE | (cannot run in sandbox) |
 | D2: README.md updated (motion, reduced motion, action buttons, check:content) | ✅ | `README.md` |
 | D3: Security re-audit on touched files | ✅ | (no console.*, innerHTML, eval, raw fetch, all URLs through safe helpers) |
@@ -47,6 +47,8 @@
 | 13 | Fix `safeStorageUrl` validation and script exit codes | ✅ Done |
 | 14 | STEP 1: Project cover images — shared ProjectCover component | ✅ Done |
 | 15 | STEP 1 follow-up: Move cover to left column, natural variant | ✅ Done |
+| 16 | Icon-only project action buttons (`GithubMark`, `ProjectCaseStudy`, tests) | ✅ Done |
+| 17 | Icon-only buttons spec hardening: button order, layout, mobile wrap, +N overflow, archive parity, test coverage, lint | ✅ Done |
 
 ---
 
@@ -392,7 +394,7 @@ No changes needed — CSP already correct.
 - Earlier hostile URL tests still present
 
 ### Verification
-- `npm run lint`: 0 errors (1 pre-existing `Navbar.tsx` warning)
+- `npm run lint`: 0 warnings, 0 errors (fixed `Navbar.tsx` `react(set-state-in-effect)` warning)
 - `npm run typecheck`, `npm test`, `npm run build`: not run in sandbox
 
 ## Final Checklist — Items Not Verified in Sandbox
@@ -512,4 +514,42 @@ powershell -ExecutionPolicy Bypass -File scripts\security-smoke.ps1
 
 # 11. Security smoke test (against live Vercel deploy)
 powershell -ExecutionPolicy Bypass -File scripts\security-smoke.ps1 -SiteUrl "https://your-vercel-domain.vercel.app"
+```
+
+---
+
+## Task 17 — Icon-Only Action Buttons Spec Hardening
+
+**Goal:** Replace all text-labelled project action buttons with icon-only 40×40 px square buttons in a row at the top-right of every project title, on both the home page and the `/projects` archive.
+
+### Files changed
+
+| File | Change |
+|------|--------|
+| `src/components/GithubMark.tsx` | Inline SVG with exact Octocat path, `viewBox="0 0 24 24"`, `fill="currentColor"`, `aria-hidden="true"`, `focusable="false"` |
+| `src/components/sections/ProjectCaseStudy.tsx` | Replaced labelled buttons and document-chip row with icon-only `<a>` buttons. Removed `getFileTypeIcon`, `getFileExtensionBadge`, `truncateFileName` helpers and all old lucide imports (GitBranch, File, FileCode, etc.). Added `MAX_DOCUMENT_BUTTONS=3`, `visibleFiles`, `overflowCount`, `+N` aria-hidden span. Order: GitHub → Live → Documents. |
+| `src/pages/ProjectsArchivePage.tsx` | No change needed — archive already uses `ProjectCaseStudy`, which now renders icon-only buttons in both contexts. |
+| `src/__tests__/sections.test.tsx` | Full suite of `ProjectCaseStudy action buttons` tests: repo only, live only, doc only, all three, none (no row), cap at 3 + `+N`, hostile URLs rejected, archive page parity, no visible text, correct `aria-label` / `title` / `target` / `rel`. |
+| `PORTFOLIO_PROGRESS.md` | This entry. |
+
+### Button specification
+
+- **Size**: `h-10 w-10` (40px), `max-sm:h-11 max-sm:w-11` (44px on touch screens)
+- **Style**: `border border-line bg-surface text-muted` sharp corners (no border-radius)
+- **Hover/focus**: `hover:border-accent hover:text-ink hover:-translate-y-px`, `focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2`
+- **Reduced motion**: `motion-reduce:transition-none motion-reduce:hover:translate-y-0`
+- **Icons**: GithubMark (18px SVG), `ExternalLink` (lucide, h-5 w-5), `FileText` (lucide, h-5 w-5)
+- **Overflow**: up to 3 document buttons + `aria-hidden` `<span>+N</span>` for the rest
+
+### Security & accessibility
+
+- All URLs validated: `safeUrl(..., { allowMailtoTel: false })` for github/live; `safeStorageUrl()` for docs
+- Each button: `target="_blank" rel="noopener noreferrer"`, `aria-label`, `title`
+- No `download` attribute, no inline handlers, no iframes, no `javascript:` or `data:` URLs can pass
+
+### Commands run
+
+```bash
+npm run lint   # → 0 warnings, 0 errors (oxlint, 60 files)
+# tsc / vitest / build: not run (sandbox constraints)
 ```
