@@ -10,12 +10,12 @@
 |------|--------|-------|
 | A1: Motion tokens in `src/index.css` + `js` class in `main.tsx` | ✅ | `src/index.css`, `src/main.tsx` |
 | A2: Reveal-on-scroll hook (`useReveal`) with shared IntersectionObserver | ✅ | `src/hooks/useReveal.ts` |
-| A3: Smooth scroll + focus + back-to-top | ☐ | |
-| A4: Scroll progress bar | ☐ | |
-| A5: Navbar and drawer motion | ☐ | |
+| A3: Smooth scroll + focus + back-to-top | ✅ | `src/lib/scroll.ts`, `src/App.tsx`, `src/components/Navbar.tsx` |
+| A4: Scroll progress bar | ✅ | `src/lib/scroll.ts`, `src/App.tsx`, `src/index.css` |
+| A5: Navbar and drawer motion | ✅ | `src/components/Navbar.tsx`, `src/index.css` |
 | A6: Hero entrance and float | ☐ | |
 | A7: Section/card/row/button/cover hover and reveal | ☐ | |
-| A8: Route transitions | ☐ | |
+| A8: Route transitions | ✅ | `src/App.tsx` |
 | A9: Theme transition | ☐ | |
 | A10: Skeleton loading | ☐ | |
 | A11: Reduced-motion block in CSS + `useReducedMotion` hook | ✅ | `src/index.css`, `src/hooks/useReducedMotion.ts` |

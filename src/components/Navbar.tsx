@@ -3,6 +3,7 @@ import { Menu, Moon, Sun, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useContent } from '../context/contentContext'
 import type { SectionItem } from '../types/content'
+import { scrollToSection } from '../lib/scroll'
 
 function useScrollSpy(sections: SectionItem[], enabled: boolean): string | null {
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
@@ -84,8 +85,12 @@ export function Navbar() {
   const drawerId = useId()
   const dialogRef = useRef<HTMLDialogElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
+  const navPillRef = useRef<HTMLDivElement | null>(null)
+  const activeLinkRef = useRef<HTMLAnchorElement | null>(null)
   const wasDrawerOpenRef = useRef(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [activeLinkRect, setActiveLinkRect] = useState<DOMRect | null>(null)
 
   const navSections = useMemo(
     () =>
@@ -97,6 +102,42 @@ export function Navbar() {
 
   const activeSlug = useScrollSpy(navSections, isHome)
 
+  // Update active link highlight position (A5)
+  useEffect(() => {
+    if (!isHome || !activeSlug) {
+      setActiveLinkRect(null)
+      return
+    }
+    // Defer measurement to avoid synchronous layout in effect
+    // eslint-disable-next-line react/set-state-in-effect
+    requestAnimationFrame(() => {
+      const activeLink = document.querySelector(
+        `nav a[href="#${activeSlug}"]`
+      ) as HTMLAnchorElement | null
+      if (activeLink && navPillRef.current) {
+        const pillRect = navPillRef.current.getBoundingClientRect()
+        const linkRect = activeLink.getBoundingClientRect()
+        setActiveLinkRect({
+          x: linkRect.left - pillRect.left,
+          y: linkRect.top - pillRect.top,
+          width: linkRect.width,
+          height: linkRect.height,
+        } as DOMRect)
+      }
+    })
+  }, [activeSlug, isHome, navSections])
+
+  // Scroll-based navbar styling (A5)
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Drawer focus handling (A5)
   useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
@@ -146,15 +187,29 @@ export function Navbar() {
   const closeDrawer = () => setDrawerOpen(false)
   const ctaLabel = content.settings.nav_cta_label || "Let's Connect"
 
+  // Handle nav link clicks with smooth scroll + focus (A3)
+  const handleNavClick = (slug: string, e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isHome) return // Let Link handle cross-page navigation
+    e.preventDefault()
+    scrollToSection(slug)
+    closeDrawer()
+  }
+
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
+    <header
+      className={`sticky top-0 z-40 border-b border-line transition-all duration-300 ease-out ${
+        scrolled
+          ? 'bg-bg/95 backdrop-blur-md border-line/60 shadow-[0_4px_24px_rgb(var(--border)/0.3)]'
+          : 'bg-bg/85 backdrop-blur-md'
+      }`}
+    >
       <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between gap-4">
         <Link
           to="/"
           className="flex items-center gap-3 shrink-0 group"
           onClick={() => {
             if (isHome) {
-              window.scrollTo({ top: 0 })
+              window.scrollTo({ top: 0, behavior: shouldUseSmoothScroll() ? 'smooth' : 'auto' })
             }
           }}
         >
@@ -169,36 +224,54 @@ export function Navbar() {
         {navSections.length > 0 ? (
           <nav
             aria-label="Primary"
-            className="hidden lg:flex items-center rounded-full border border-line bg-surface/70 px-3 py-1.5 gap-1"
+            className="hidden lg:flex items-center relative"
+            ref={navPillRef}
           >
-            {navSections.map((section) => {
-              const label = section.nav_label || section.title || section.slug
-              const isActive = isHome && activeSlug === section.slug
-              const href = isHome ? `#${section.slug}` : `/#${section.slug}`
+            {/* Sliding active indicator (A5) */}
+            {activeLinkRect && (
+              <div
+                className="absolute top-1.5 left-0 rounded-full bg-accent/15 transition-transform duration-300 ease-out pointer-events-none"
+                style={{
+                  transform: `translateX(${activeLinkRect.x}px)`,
+                  width: activeLinkRect.width,
+                  height: activeLinkRect.height,
+                }}
+                aria-hidden="true"
+              />
+            )}
 
-              return isHome ? (
-                <a
-                  key={section.id}
-                  href={href}
-                  aria-current={isActive ? 'true' : undefined}
-                  className={`relative px-3.5 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] transition-colors ${
-                    isActive
-                      ? 'text-ink font-semibold bg-accent/15'
-                      : 'text-muted hover:text-ink'
-                  }`}
-                >
-                  {label}
-                </a>
-              ) : (
-                <Link
-                  key={section.id}
-                  to={href}
-                  className="px-3.5 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-ink transition-colors"
-                >
-                  {label}
-                </Link>
-              )
-            })}
+            <div className="relative flex items-center rounded-full border border-line bg-surface/70 px-3 py-1.5 gap-1">
+              {navSections.map((section) => {
+                const label = section.nav_label || section.title || section.slug
+                const isActive = isHome && activeSlug === section.slug
+                const href = isHome ? `#${section.slug}` : `/#${section.slug}`
+
+                return isHome ? (
+                  <a
+                    key={section.id}
+                    href={href}
+                    onClick={(e) => handleNavClick(section.slug, e)}
+                    aria-current={isActive ? 'true' : undefined}
+                    ref={isActive ? activeLinkRef : undefined}
+                    className={`relative px-3.5 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] transition-colors z-10 ${
+                      isActive
+                        ? 'text-ink font-semibold'
+                        : 'text-muted hover:text-ink'
+                    }`}
+                  >
+                    {label}
+                  </a>
+                ) : (
+                  <Link
+                    key={section.id}
+                    to={href}
+                    className="px-3.5 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-ink transition-colors"
+                  >
+                    {label}
+                  </Link>
+                )
+              })}
+            </div>
           </nav>
         ) : null}
 
@@ -218,11 +291,25 @@ export function Navbar() {
           </button>
 
           {isHome ? (
-            <a href="#contact" className="btn-primary hidden sm:inline-flex py-2.5 px-5">
+            <a
+              href="#contact"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('contact')
+              }}
+              className="btn-primary hidden sm:inline-flex py-2.5 px-5"
+            >
               {ctaLabel}
             </a>
           ) : (
-            <Link to="/#contact" className="btn-primary hidden sm:inline-flex py-2.5 px-5">
+            <Link
+              to="/#contact"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('contact')
+              }}
+              className="btn-primary hidden sm:inline-flex py-2.5 px-5"
+            >
               {ctaLabel}
             </Link>
           )}
@@ -250,7 +337,7 @@ export function Navbar() {
             closeDrawer()
           }
         }}
-        className="m-0 ml-auto h-full max-h-none w-80 max-w-[85vw] border-l border-line bg-bg text-ink p-0 backdrop:bg-black/70 backdrop:backdrop-blur-xs"
+        className="m-0 ml-auto h-full max-h-none w-80 max-w-[85vw] border-l border-line bg-bg text-ink p-0 backdrop:bg-black/70 backdrop:backdrop-blur-xs animate-drawer-in"
       >
         <div className="flex h-full flex-col justify-between p-6">
           <div className="space-y-8">
@@ -284,7 +371,11 @@ export function Navbar() {
                   <a
                     key={section.id}
                     href={href}
-                    onClick={closeDrawer}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection(section.slug)
+                      closeDrawer()
+                    }}
                     aria-current={isActive ? 'true' : undefined}
                     className={`px-3 py-3 font-mono text-xs uppercase tracking-[0.2em] border-l-2 transition-colors ${
                       isActive
@@ -310,11 +401,27 @@ export function Navbar() {
 
           <div className="pt-6 border-t border-line">
             {isHome ? (
-              <a href="#contact" onClick={closeDrawer} className="btn-primary w-full">
+              <a
+                href="#contact"
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToSection('contact')
+                  closeDrawer()
+                }}
+                className="btn-primary w-full"
+              >
                 {ctaLabel}
               </a>
             ) : (
-              <Link to="/#contact" onClick={closeDrawer} className="btn-primary w-full">
+              <Link
+                to="/#contact"
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToSection('contact')
+                  closeDrawer()
+                }}
+                className="btn-primary w-full"
+              >
                 {ctaLabel}
               </Link>
             )}
@@ -323,4 +430,9 @@ export function Navbar() {
       </dialog>
     </header>
   )
+}
+
+function shouldUseSmoothScroll(): boolean {
+  if (typeof window === 'undefined') return false
+  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
