@@ -14,9 +14,9 @@ export function LoadingView() {
           </span>
         </div>
         <div className="space-y-3" aria-hidden="true">
-          <div className="h-8 w-2/3 bg-border/60 animate-pulse" />
-          <div className="h-4 w-full bg-border/40 animate-pulse" />
-          <div className="h-4 w-5/6 bg-border/40 animate-pulse" />
+          <div className="h-8 w-2/3 skeleton" />
+          <div className="h-4 w-full skeleton" />
+          <div className="h-4 w-5/6 skeleton" />
         </div>
         <p className="text-sm text-muted">Loading portfolio content...</p>
       </div>

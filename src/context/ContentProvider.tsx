@@ -21,6 +21,7 @@ import {
   type ContentSource,
   type ContentStatus,
 } from './contentContext'
+import { cleanupRevealObserver } from '../hooks/useReveal'
 
 export const REALTIME_DEBOUNCE_MS = 500
 export const REALTIME_MIN_INTERVAL_MS = 2_000
@@ -136,6 +137,14 @@ export function ContentProvider({
 
   const toggleThemeMode = useCallback(() => {
     const next: ThemeMode = themeMode === 'dark' ? 'light' : 'dark'
+    // A9: Add theme-transition class for smooth color transitions
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('theme-transition')
+      // Remove after transition completes
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transition')
+      }, 350)
+    }
     writeStoredThemeMode(next)
     setUserThemeOverride(next)
   }, [themeMode])
@@ -361,6 +370,7 @@ export function ContentProvider({
       if (unsubscribeRealtime) {
         void unsubscribeRealtime()
       }
+      cleanupRevealObserver()
     }
   }, [client, disableLiveUpdates, loadLiveContent])
 

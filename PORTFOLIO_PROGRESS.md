@@ -16,10 +16,10 @@
 | A6: Hero entrance and float | ✅ | `src/components/Hero.tsx`, `src/index.css`, `src/hooks/useReducedMotion.ts` |
 | A7: Section/card/row/button/cover hover and reveal | ✅ | `src/components/sections/*.tsx`, `src/components/ProjectCover.tsx`, `src/components/Footer.tsx`, `src/index.css` |
 | A8: Route transitions | ✅ | `src/App.tsx` |
-| A9: Theme transition | ☐ | |
-| A10: Skeleton loading | ☐ | |
+| A9: Theme transition | ✅ | `src/context/ContentProvider.tsx`, `src/index.css` |
+| A10: Skeleton loading | ✅ | `src/components/StatusViews.tsx`, `src/index.css` |
 | A11: Reduced-motion block in CSS + `useReducedMotion` hook | ✅ | `src/index.css`, `src/hooks/useReducedMotion.ts` |
-| A12: Performance rules (throttled listeners, will-change, cleanup) | ☐ | |
+| A12: Performance rules (throttled listeners, will-change, cleanup) | ✅ | `src/hooks/useReveal.ts`, `src/context/ContentProvider.tsx`, `src/App.tsx`, `src/components/Navbar.tsx` |
 | A13: Tests for motion system | ☐ | |
 | D1: `verify:dist` passes, bundle budget, no source maps | ☐ | |
 | D2: README.md updated (motion, reduced motion, action buttons, check:content) | ☐ | |
