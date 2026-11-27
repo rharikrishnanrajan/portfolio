@@ -13,7 +13,7 @@
 | A3: Smooth scroll + focus + back-to-top | ✅ | `src/lib/scroll.ts`, `src/App.tsx`, `src/components/Navbar.tsx` |
 | A4: Scroll progress bar | ✅ | `src/lib/scroll.ts`, `src/App.tsx`, `src/index.css` |
 | A5: Navbar and drawer motion | ✅ | `src/components/Navbar.tsx`, `src/index.css` |
-| A6: Hero entrance and float | ☐ | |
+| A6: Hero entrance and float | ✅ | `src/components/Hero.tsx`, `src/index.css`, `src/hooks/useReducedMotion.ts` |
 | A7: Section/card/row/button/cover hover and reveal | ☐ | |
 | A8: Route transitions | ✅ | `src/App.tsx` |
 | A9: Theme transition | ☐ | |
