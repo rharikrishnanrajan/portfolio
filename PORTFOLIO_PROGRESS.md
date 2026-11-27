@@ -365,36 +365,35 @@ No changes needed — CSP already correct.
 ### Changes
 
 **1. `src/components/sections/ProjectCaseStudy.tsx`**
-- Moved `<ProjectCover project={project} variant="natural" className="mt-6 w-full box-border" />` from the right column (between summary and "ENGINEERING IMPLEMENTATION") to the left column (`lg:col-span-4`), directly under the tagline, with `mt-6` spacing
+- Moved `<ProjectCover project={project} variant="natural" className="mt-6" />` from the right column (between summary and "ENGINEERING IMPLEMENTATION") to the left column (`lg:col-span-4`), directly under the tagline, with `mt-6` spacing
+- Added `w-full box-border` to the Verified outcome box so its outer width matches the cover wrapper
 - Cover is now a sibling of the Verified outcome box inside the same left-column container
 - Removed cover rendering from the right column entirely
 
 **2. `src/components/ProjectCover.tsx`**
-- Added `variant` prop (`'natural' | 'cropped'`, default `'cropped'`)
+- Added `variant` prop (`'natural' | 'cropped'`, default `'cropped'`) and `className?: string`
 - **Natural variant** (home page case study):
-  - Wrapper: `w-full box-border`, 1px border, sharp corners, `overflow-hidden`
-  - Image: `display:block`, `width:100%`, `height:auto`, NO `object-fit:cover`, NO forced aspect ratio
-  - Shows 16:9 shimmer placeholder until loaded
-  - On load (and for cached images via `img.complete` on mount): reads `naturalWidth`/`naturalHeight` and sets `aspect-ratio` via `style.setProperty` with the two numbers
-  - Safety cap: `max-height: 32rem`; if natural height would exceed, uses `object-fit:contain` with `bg-surface` background, centered, still full box width
-  - Optional anchor wrapper: links to `safeCover` with `target="_blank" rel="noopener noreferrer"`, `aria-label="View full-size preview of <project title> (opens in a new tab)"`, `cursor:zoom-in`, subtle hover border color change
-- **Cropped variant** (archive page): unchanged 16:9 behavior, fixed dimensions, `object-fit:cover`
+  - Wrapper: `w-full box-border`, 1px border (`border-line`), sharp corners, `overflow-hidden`, `max-h-[32rem]`, `bg-surface`
+  - Image: `display:block`, `width:100%`, `height:auto`, `max-h-[32rem]`, `object-contain`, `bg-surface`, NO `object-fit:cover`, NO forced aspect ratio
+  - Shows 16:9 shimmer placeholder on wrapper (`aspectRatio: '16 / 9'`) until loaded
+  - On load (and for cached images via `img.complete && img.naturalWidth > 0` on mount): reads `naturalWidth`/`naturalHeight` and switches the wrapper's `aspect-ratio` via `wrapperRef.current.style.setProperty('aspect-ratio', ...)` with the two numbers
+  - Safety cap: `max-height: 32rem`; if natural height would exceed it, image uses `object-fit:contain` with `bg-surface` background, centered, still at full box width
+  - Anchor wrapper: links to `safeCover` with `target="_blank" rel="noopener noreferrer"`, `aria-label="View full-size preview of <project title> (opens in a new tab)"`, `cursor-zoom-in`, `group-hover:border-accent` on the bordered wrapper
+- **Cropped variant** (archive page): unchanged 16:9 behavior, fixed dimensions (`1280x720`), `object-fit:cover`
 - Both variants: `safeImageUrl` check, nothing rendered for missing/invalid URL, box disappears on error, alt text `"<project title> preview"`, `loading="lazy"`, `decoding="async"`
 
-**3. `src/pages/ProjectsArchivePage.tsx`**
-- Updated to explicitly use `variant="cropped"` for archive page covers
-
-**4. `src/__tests__/sections.test.tsx` — New tests**
-- Natural variant: no `object-fit:cover`, no fixed aspect ratio after load, no `width`/`height` attributes, has `object-contain` and `max-h-[32rem]`, wrapper is `w-full` not `aspect-[16/9]`
+**3. `src/__tests__/sections.test.tsx` — Tests**
+- Natural variant: no `object-fit:cover`, no fixed `aspect-[16/9]` class before and after `fireEvent.load`, no `width`/`height` attributes, has `object-contain` and `max-h-[32rem]`, wrapper switches `aspect-ratio` from `16 / 9` to `800 / 600` on load
 - Cropped variant: explicit `width`/`height` (1280/720), `object-cover`, wrapper has `aspect-[16/9]`
 - Natural variant wraps image in anchor with correct `href`, `target="_blank"`, `rel="noopener noreferrer"`, `aria-label`, `cursor-zoom-in`, `hover:border-accent`
 - Cropped variant does NOT wrap in anchor
-- Cover placement: rendered in left column (not right column) on home page; cover appears after tagline in left column
-- Hostile URL tests still pass
+- Archive page still uses cropped variant
+- Cover placement: rendered in left column (not right column) on home page, and appears after tagline in DOM order
+- Earlier hostile URL tests still present
 
 ### Verification
-- All 73 tests pass
-- Lint passes (0 warnings, 0 errors — pre-existing Navbar warning unrelated)
+- `npm run lint`: 0 errors (1 pre-existing `Navbar.tsx` warning)
+- `npm run typecheck`, `npm test`, `npm run build`: not run in sandbox
 
 ## Final Checklist — Items Not Verified in Sandbox
 

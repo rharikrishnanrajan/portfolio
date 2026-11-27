@@ -505,22 +505,35 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       unmount()
     })
 
-    it('renders with natural variant: no object-fit cover, no fixed aspect ratio after load', () => {
+    it('renders with natural variant: no object-fit cover, no fixed aspect ratio before and after load', () => {
       const validCover = 'https://example.supabase.co/storage/v1/object/public/portfolio/projects/uuid/uuid-name.jpg'
       renderProjectCover({ cover_url: validCover, title: 'Test Project' }, 'natural')
 
-      const img = screen.getByRole('img', { name: 'Test Project preview' })
+      const img = screen.getByRole('img', { name: 'Test Project preview' }) as HTMLImageElement
       expect(img).toBeTruthy()
       expect(img.getAttribute('src')).toBe(validCover)
       // Natural variant: no width/height attributes, no object-fit cover
       expect(img.getAttribute('width')).toBeNull()
       expect(img.getAttribute('height')).toBeNull()
+      expect(img.className).not.toContain('object-cover')
       expect(img.className).toContain('object-contain')
       expect(img.className).toContain('max-h-[32rem]')
-      // Wrapper should be w-full, not aspect-[16/9]
-      const wrapper = img.parentElement
-      expect(wrapper?.className).toContain('w-full')
-      expect(wrapper?.className).not.toContain('aspect-[16/9]')
+
+      // Wrapper should be w-full, not aspect-[16/9], starting with 16 / 9 placeholder ratio
+      const wrapper = img.parentElement as HTMLElement
+      expect(wrapper.className).toContain('w-full')
+      expect(wrapper.className).not.toContain('aspect-[16/9]')
+      expect(wrapper.style.getPropertyValue('aspect-ratio')).toBe('16 / 9')
+
+      // Simulate image load with natural dimensions
+      Object.defineProperty(img, 'naturalWidth', { value: 800, configurable: true })
+      Object.defineProperty(img, 'naturalHeight', { value: 600, configurable: true })
+      fireEvent.load(img)
+
+      // After load: still no object-cover or aspect-[16/9], wrapper switches to natural ratio
+      expect(img.className).not.toContain('object-cover')
+      expect(wrapper.className).not.toContain('aspect-[16/9]')
+      expect(wrapper.style.getPropertyValue('aspect-ratio')).toBe('800 / 600')
     })
 
     it('renders cropped variant with explicit dimensions and object-fit cover', () => {
@@ -592,12 +605,13 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       const tagline = container.querySelector('p > span[aria-hidden="true"]')
       expect(tagline).toBeTruthy()
 
-      // Both tagline and cover should be in the same column (left)
+      // Both tagline and cover should be in the same column (left), and cover comes after tagline
       const taglineParent = tagline?.closest('[class*="lg:col-span"]')
       const coverParent = coverImg?.closest('[class*="lg:col-span"]')
       expect(taglineParent).toBeTruthy()
       expect(coverParent).toBeTruthy()
       expect(taglineParent).toBe(coverParent)
+      expect(tagline!.compareDocumentPosition(coverImg!) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
     })
   })
 

@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { safeImageUrl } from '../lib/safeUrl'
 import type { ProjectItem } from '../types/content'
 
-type CoverVariant = 'natural' | 'cropped'
+export type CoverVariant = 'natural' | 'cropped'
 
-interface ProjectCoverProps {
+export interface ProjectCoverProps {
   project: ProjectItem
   variant?: CoverVariant
+  className?: string
 }
 
 /**
@@ -16,15 +17,24 @@ interface ProjectCoverProps {
  * - "cropped" (default): 16:9 aspect ratio, object-fit cover, fixed dimensions (1280x720)
  * - "natural": full column width, height follows image proportions (height: auto),
  *              no object-fit cover, no forced aspect ratio crop.
- *              Shows 16:9 shimmer placeholder until loaded, then switches to natural aspect-ratio
- *              via style.setProperty. Safety cap: max-height 32rem; if exceeded, uses
- *              object-fit: contain with bg-surface background, centered.
- *              Optional anchor wrapper with zoom-in cursor and hover border color change.
+ *              Shows 16:9 shimmer placeholder until loaded, then switches wrapper to natural
+ *              aspect-ratio via style.setProperty. Safety cap: max-height 32rem; if exceeded,
+ *              uses object-fit: contain with bg-surface background, centered.
+ *              Wraps in an anchor with zoom-in cursor and hover border color change.
  */
-export function ProjectCover({ project, variant = 'cropped' }: ProjectCoverProps) {
+function setWrapperNaturalAspectRatio(wrapper: HTMLDivElement | null, img: HTMLImageElement) {
+  if (!wrapper) return
+  const w = Math.trunc(img.naturalWidth)
+  const h = Math.trunc(img.naturalHeight)
+  if (Number.isFinite(w) && w > 0 && Number.isFinite(h) && h > 0) {
+    wrapper.style.setProperty('aspect-ratio', `${w} / ${h}`)
+  }
+}
+
+export function ProjectCover({ project, variant = 'cropped', className = '' }: ProjectCoverProps) {
   const [coverFailed, setCoverFailed] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [showShimmer, setShowShimmer] = useState(true)
+  const wrapperRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
 
   const safeCover = safeImageUrl(project.cover_url)
@@ -32,25 +42,18 @@ export function ProjectCover({ project, variant = 'cropped' }: ProjectCoverProps
   // Handle already-cached images
   useEffect(() => {
     const img = imgRef.current
-    if (img && img.complete) {
+    if (img && img.complete && img.naturalWidth > 0) {
       setIsLoaded(true)
-      setShowShimmer(false)
-      if (variant === 'natural' && img.naturalWidth > 0 && img.naturalHeight > 0) {
-        const aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`
-        img.style.setProperty('aspect-ratio', aspectRatio)
+      if (variant === 'natural') {
+        setWrapperNaturalAspectRatio(wrapperRef.current, img)
       }
     }
   }, [variant])
 
   const handleLoad = () => {
     setIsLoaded(true)
-    setShowShimmer(false)
-    if (variant === 'natural') {
-      const img = imgRef.current
-      if (img && img.naturalWidth > 0 && img.naturalHeight > 0) {
-        const aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`
-        img.style.setProperty('aspect-ratio', aspectRatio)
-      }
+    if (variant === 'natural' && imgRef.current) {
+      setWrapperNaturalAspectRatio(wrapperRef.current, imgRef.current)
     }
   }
 
@@ -66,8 +69,8 @@ export function ProjectCover({ project, variant = 'cropped' }: ProjectCoverProps
 
   const imageContent = (
     <>
-      {/* Shimmer placeholder - always 16:9 for natural variant until loaded */}
-      {showShimmer && (
+      {/* Shimmer placeholder - 16:9 for natural variant until loaded */}
+      {!isLoaded && (
         <div
           className="absolute inset-0 animate-shimmer bg-gradient-to-r from-surface via-line/20 to-surface"
           aria-hidden="true"
@@ -88,19 +91,13 @@ export function ProjectCover({ project, variant = 'cropped' }: ProjectCoverProps
           transition-opacity duration-300
           ${isLoaded ? 'opacity-100' : 'opacity-0'}
           ${isNatural
-            ? 'w-full h-auto block max-h-[32rem] object-contain bg-surface mx-auto'
+            ? 'block w-full h-auto max-h-[32rem] object-contain bg-surface mx-auto'
             : 'h-full w-full object-cover transition-transform duration-700 ease-out'
           }
         `}
-        style={isNatural ? { aspectRatio: '16 / 9' } : undefined}
       />
     </>
   )
-
-  const wrapperClasses = `
-    relative overflow-hidden border border-line bg-surface
-    ${isNatural ? 'w-full box-border' : 'aspect-[16/9]'}
-  `
 
   if (isNatural) {
     return (
@@ -109,14 +106,25 @@ export function ProjectCover({ project, variant = 'cropped' }: ProjectCoverProps
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`View full-size preview of ${project.title} (opens in a new tab)`}
-        className="cover-wrapper block cursor-zoom-in hover:border-accent transition-colors duration-200"
+        className={`group block w-full cursor-zoom-in hover:border-accent transition-colors duration-200 ${className}`.trim()}
       >
-        <div className={wrapperClasses}>{imageContent}</div>
+        <div
+          ref={wrapperRef}
+          style={{ aspectRatio: '16 / 9' }}
+          className="relative w-full box-border max-h-[32rem] overflow-hidden border border-line bg-surface transition-colors duration-200 group-hover:border-accent"
+        >
+          {imageContent}
+        </div>
       </a>
     )
   }
 
   return (
-    <div className={wrapperClasses}>{imageContent}</div>
+    <div
+      ref={wrapperRef}
+      className={`cover-wrapper relative overflow-hidden border border-line bg-surface aspect-[16/9] ${className}`.trim()}
+    >
+      {imageContent}
+    </div>
   )
 }

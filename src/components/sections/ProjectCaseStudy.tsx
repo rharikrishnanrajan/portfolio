@@ -80,7 +80,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
           </div>
 
           {project.outcome ? (
-            <div className="card verified-outcome-shimmer p-5 space-y-2">
+            <div className="card verified-outcome-shimmer w-full box-border p-5 space-y-2">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                 VERIFIED OUTCOME
               </p>
@@ -102,7 +102,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
 
           {/* Project cover image in left column, below tagline, same width as Verified outcome box */}
           {hasCover && (
-            <ProjectCover project={project} variant="natural" className="mt-6 w-full box-border" />
+            <ProjectCover project={project} variant="natural" className="mt-6" />
           )}
         </div>
 
