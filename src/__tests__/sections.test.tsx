@@ -393,19 +393,19 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
   })
 
   describe('ProjectCover component', () => {
-    function renderProjectCover(project: { cover_url: string | null; title: string }) {
+    function renderProjectCover(project: { cover_url: string | null; title: string }, variant: 'natural' | 'cropped' = 'cropped') {
       return render(
         <ContentProvider initialContent={makePortfolioContent()} disableLiveUpdates>
           <MemoryRouter initialEntries={['/']}>
-            <ProjectCover project={{ ...makePortfolioContent().projects[0], ...project }} />
+            <ProjectCover project={{ ...makePortfolioContent().projects[0], ...project }} variant={variant} />
           </MemoryRouter>
         </ContentProvider>,
       )
     }
 
-    it('renders with a valid Supabase storage URL', () => {
+    it('renders with a valid Supabase storage URL (cropped variant default)', () => {
       const validCover = 'https://example.supabase.co/storage/v1/object/public/portfolio/projects/uuid/uuid-name.jpg'
-      renderProjectCover({ cover_url: validCover, title: 'Test Project' })
+      renderProjectCover({ cover_url: validCover, title: 'Test Project' }, 'cropped')
 
       const img = screen.getByRole('img', { name: 'Test Project preview' })
       expect(img).toBeTruthy()
@@ -490,16 +490,114 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       expect(img.getAttribute('height')).toBe('720')
     })
 
-    it('renders on the archive page with the same component', async () => {
+    it('renders on the archive page with the cropped variant', async () => {
       const { unmount } = renderAtRoute('/projects')
-      // The archive page uses the same ProjectCover component
+      // The archive page uses the cropped variant
       const img = screen.getByRole('img', { name: 'Multi-Region Deployment preview' })
       expect(img).toBeTruthy()
       expect(img.getAttribute('width')).toBe('1280')
       expect(img.getAttribute('height')).toBe('720')
       expect(img.getAttribute('loading')).toBe('lazy')
       expect(img.getAttribute('decoding')).toBe('async')
+      // Wrapper should have aspect-[16/9] for cropped variant
+      const wrapper = img.parentElement
+      expect(wrapper?.className).toContain('aspect-[16/9]')
       unmount()
+    })
+
+    it('renders with natural variant: no object-fit cover, no fixed aspect ratio after load', () => {
+      const validCover = 'https://example.supabase.co/storage/v1/object/public/portfolio/projects/uuid/uuid-name.jpg'
+      renderProjectCover({ cover_url: validCover, title: 'Test Project' }, 'natural')
+
+      const img = screen.getByRole('img', { name: 'Test Project preview' })
+      expect(img).toBeTruthy()
+      expect(img.getAttribute('src')).toBe(validCover)
+      // Natural variant: no width/height attributes, no object-fit cover
+      expect(img.getAttribute('width')).toBeNull()
+      expect(img.getAttribute('height')).toBeNull()
+      expect(img.className).toContain('object-contain')
+      expect(img.className).toContain('max-h-[32rem]')
+      // Wrapper should be w-full, not aspect-[16/9]
+      const wrapper = img.parentElement
+      expect(wrapper?.className).toContain('w-full')
+      expect(wrapper?.className).not.toContain('aspect-[16/9]')
+    })
+
+    it('renders cropped variant with explicit dimensions and object-fit cover', () => {
+      const validCover = 'https://example.supabase.co/storage/v1/object/public/portfolio/projects/uuid/uuid-name.jpg'
+      renderProjectCover({ cover_url: validCover, title: 'Test Project' }, 'cropped')
+
+      const img = screen.getByRole('img', { name: 'Test Project preview' })
+      expect(img).toBeTruthy()
+      expect(img.getAttribute('width')).toBe('1280')
+      expect(img.getAttribute('height')).toBe('720')
+      expect(img.className).toContain('object-cover')
+      // Wrapper should have aspect-[16/9]
+      const wrapper = img.parentElement
+      expect(wrapper?.className).toContain('aspect-[16/9]')
+    })
+
+    it('natural variant wraps image in anchor with correct attributes', () => {
+      const validCover = 'https://example.supabase.co/storage/v1/object/public/portfolio/projects/uuid/uuid-name.jpg'
+      renderProjectCover({ cover_url: validCover, title: 'Test Project' }, 'natural')
+
+      const link = screen.getByRole('link', { name: /View full-size preview of Test Project \(opens in a new tab\)/i })
+      expect(link).toBeTruthy()
+      expect(link.getAttribute('href')).toBe(validCover)
+      expect(link.getAttribute('target')).toBe('_blank')
+      expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+      expect(link.className).toContain('cursor-zoom-in')
+      expect(link.className).toContain('hover:border-accent')
+    })
+
+    it('cropped variant does not wrap image in anchor', () => {
+      const validCover = 'https://example.supabase.co/storage/v1/object/public/portfolio/projects/uuid/uuid-name.jpg'
+      renderProjectCover({ cover_url: validCover, title: 'Test Project' }, 'cropped')
+
+      expect(screen.queryByRole('link', { name: /View full-size preview of Test Project \(opens in a new tab\)/i })).toBeNull()
+    })
+  })
+
+  describe('ProjectCaseStudy cover placement', () => {
+    it('renders cover in left column (not right column) on home page', () => {
+      const { container } = renderAtRoute('/')
+
+      // The cover image should exist in the document
+      const coverImg = container.querySelector('img[alt="Multi-Region Deployment preview"]')
+      expect(coverImg).toBeTruthy()
+
+      // The cover should NOT be inside a right-column context
+      // (the right column is the second lg:col-span-8 child of the grid)
+      const rightColumn = container.querySelector('[class*="lg:col-span-8"]')
+      // The right column exists but should not contain the cover
+      if (rightColumn) {
+        expect(rightColumn.contains(coverImg!)).toBe(false)
+      }
+
+      // The cover should be inside a left-column context
+      // (the left column is the first lg:col-span-4 child of the grid)
+      const leftColumn = container.querySelector('[class*="lg:col-span-4"]')
+      expect(leftColumn).toBeTruthy()
+      expect(leftColumn?.contains(coverImg!)).toBe(true)
+    })
+
+    it('cover appears after tagline in left column', () => {
+      const { container } = renderAtRoute('/')
+
+      // The cover image should exist
+      const coverImg = container.querySelector('img[alt="Multi-Region Deployment preview"]')
+      expect(coverImg).toBeTruthy()
+
+      // Find the tagline - it's a p element containing a span with aria-hidden
+      const tagline = container.querySelector('p > span[aria-hidden="true"]')
+      expect(tagline).toBeTruthy()
+
+      // Both tagline and cover should be in the same column (left)
+      const taglineParent = tagline?.closest('[class*="lg:col-span"]')
+      const coverParent = coverImg?.closest('[class*="lg:col-span"]')
+      expect(taglineParent).toBeTruthy()
+      expect(coverParent).toBeTruthy()
+      expect(taglineParent).toBe(coverParent)
     })
   })
 

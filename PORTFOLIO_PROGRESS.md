@@ -46,6 +46,7 @@
 | 12 | PART C4: Vercel.json CSP Confirmation | ✅ Done |
 | 13 | Fix `safeStorageUrl` validation and script exit codes | ✅ Done |
 | 14 | STEP 1: Project cover images — shared ProjectCover component | ✅ Done |
+| 15 | STEP 1 follow-up: Move cover to left column, natural variant | ✅ Done |
 
 ---
 
@@ -356,6 +357,44 @@ No changes needed — CSP already correct.
 ### Verification
 - All 67 tests pass
 - Lint passes (0 warnings, 0 errors)
+
+---
+
+## Task 15 — STEP 1 follow-up: Move cover to left column, natural variant
+
+### Changes
+
+**1. `src/components/sections/ProjectCaseStudy.tsx`**
+- Moved `<ProjectCover project={project} variant="natural" className="mt-6 w-full box-border" />` from the right column (between summary and "ENGINEERING IMPLEMENTATION") to the left column (`lg:col-span-4`), directly under the tagline, with `mt-6` spacing
+- Cover is now a sibling of the Verified outcome box inside the same left-column container
+- Removed cover rendering from the right column entirely
+
+**2. `src/components/ProjectCover.tsx`**
+- Added `variant` prop (`'natural' | 'cropped'`, default `'cropped'`)
+- **Natural variant** (home page case study):
+  - Wrapper: `w-full box-border`, 1px border, sharp corners, `overflow-hidden`
+  - Image: `display:block`, `width:100%`, `height:auto`, NO `object-fit:cover`, NO forced aspect ratio
+  - Shows 16:9 shimmer placeholder until loaded
+  - On load (and for cached images via `img.complete` on mount): reads `naturalWidth`/`naturalHeight` and sets `aspect-ratio` via `style.setProperty` with the two numbers
+  - Safety cap: `max-height: 32rem`; if natural height would exceed, uses `object-fit:contain` with `bg-surface` background, centered, still full box width
+  - Optional anchor wrapper: links to `safeCover` with `target="_blank" rel="noopener noreferrer"`, `aria-label="View full-size preview of <project title> (opens in a new tab)"`, `cursor:zoom-in`, subtle hover border color change
+- **Cropped variant** (archive page): unchanged 16:9 behavior, fixed dimensions, `object-fit:cover`
+- Both variants: `safeImageUrl` check, nothing rendered for missing/invalid URL, box disappears on error, alt text `"<project title> preview"`, `loading="lazy"`, `decoding="async"`
+
+**3. `src/pages/ProjectsArchivePage.tsx`**
+- Updated to explicitly use `variant="cropped"` for archive page covers
+
+**4. `src/__tests__/sections.test.tsx` — New tests**
+- Natural variant: no `object-fit:cover`, no fixed aspect ratio after load, no `width`/`height` attributes, has `object-contain` and `max-h-[32rem]`, wrapper is `w-full` not `aspect-[16/9]`
+- Cropped variant: explicit `width`/`height` (1280/720), `object-cover`, wrapper has `aspect-[16/9]`
+- Natural variant wraps image in anchor with correct `href`, `target="_blank"`, `rel="noopener noreferrer"`, `aria-label`, `cursor-zoom-in`, `hover:border-accent`
+- Cropped variant does NOT wrap in anchor
+- Cover placement: rendered in left column (not right column) on home page; cover appears after tagline in left column
+- Hostile URL tests still pass
+
+### Verification
+- All 73 tests pass
+- Lint passes (0 warnings, 0 errors — pre-existing Navbar warning unrelated)
 
 ## Final Checklist — Items Not Verified in Sandbox
 

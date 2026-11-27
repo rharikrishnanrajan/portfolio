@@ -44,7 +44,9 @@ export function ProjectsArchivePage() {
             {content.projects.map((project, idx) => (
               <>
                 <ProjectCaseStudy key={project.id} project={project} index={idx} />
-                {project.cover_url && <ProjectCover key={`cover-${project.id}`} project={project} />}
+                {project.cover_url && (
+                  <ProjectCover key={`cover-${project.id}`} project={project} variant="cropped" />
+                )}
               </>
             ))}
           </div>

@@ -99,6 +99,11 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
               <span>{project.tagline}</span>
             </p>
           ) : null}
+
+          {/* Project cover image in left column, below tagline, same width as Verified outcome box */}
+          {hasCover && (
+            <ProjectCover project={project} variant="natural" className="mt-6 w-full box-border" />
+          )}
         </div>
 
         <div className="lg:col-span-8 space-y-6">
@@ -144,9 +149,6 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
               {project.summary}
             </p>
           ) : null}
-
-          {/* Project cover image in right column between summary and engineering implementation */}
-          {hasCover && <ProjectCover project={project} />}
 
           {project.bullets.length > 0 ? (
             <div className="border-l-2 border-line pl-5 space-y-3">
