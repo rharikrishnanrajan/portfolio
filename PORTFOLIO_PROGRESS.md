@@ -20,11 +20,11 @@
 | A10: Skeleton loading | ✅ | `src/components/StatusViews.tsx`, `src/index.css` |
 | A11: Reduced-motion block in CSS + `useReducedMotion` hook | ✅ | `src/index.css`, `src/hooks/useReducedMotion.ts` |
 | A12: Performance rules (throttled listeners, will-change, cleanup) | ✅ | `src/hooks/useReveal.ts`, `src/context/ContentProvider.tsx`, `src/App.tsx`, `src/components/Navbar.tsx` |
-| A13: Tests for motion system | ☐ | |
-| D1: `verify:dist` passes, bundle budget, no source maps | ☐ | |
-| D2: README.md updated (motion, reduced motion, action buttons, check:content) | ☐ | |
-| D3: Security re-audit on touched files | ☐ | |
-| D4: PORTFOLIO_PROGRESS.md updated, commit | ☐ | |
+| A13: Tests for motion system | ⚠️ NOT DONE | (no file changes) |
+| D1: `verify:dist` passes, bundle budget, no source maps | ⚠️ NOT DONE | (cannot run in sandbox) |
+| D2: README.md updated (motion, reduced motion, action buttons, check:content) | ✅ | `README.md` |
+| D3: Security re-audit on touched files | ✅ | (no console.*, innerHTML, eval, raw fetch, all URLs through safe helpers) |
+| D4: PORTFOLIO_PROGRESS.md updated, commit | ✅ | `PORTFOLIO_PROGRESS.md` |
 
 ---
 

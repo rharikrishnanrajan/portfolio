@@ -33,6 +33,7 @@ An `.env.example` file is provided with placeholder values.
 | `npm run verify:dist` | Post-build safety checks (see below) |
 | `npm run preview` | Serve the production `dist/` locally |
 | `npm run audit` | `npm audit --audit-level=high` |
+| `npm run check:content` | Fetch and print admin content summary (see below) |
 
 ---
 
@@ -57,23 +58,72 @@ The `vercel.json` in the repo configures:
 
 ---
 
-## Security Smoke Test
+## Motion System
 
-`scripts/security-smoke.ps1` is a PowerShell script that hits the live site and Supabase endpoints to verify:
-- The public site returns HTTP 200.
-- The CSP header is present and contains `script-src 'self'`.
-- Direct Supabase RPC calls without the anon key are rejected (401).
-- Storage uploads are blocked by Row-Level Security (403) — tested with `Content-Type: image/png`.
+The portfolio uses a lightweight, CSS-first motion system built on native browser APIs:
 
-Run it after each deploy:
+- **CSS variables** for easing (`--ease-out`, `--ease-in-out`) and durations (`--dur-fast` 150ms, `--dur-base` 300ms, `--dur-slow` 600ms)
+- **Keyframes**: `fade-up`, `float`, `glow-pulse`, `shimmer`, `drawer-in`
+- **IntersectionObserver** for reveal-on-scroll (shared observer, staggered delays, unobserves after first reveal)
+- **Smooth scroll** with focus management: `scrollToSection()` updates URL hash, honors `scroll-margin-top`, moves focus to section heading
+- **Scroll progress bar**: 2px accent bar driven by `transform: scaleX()` via CSS variable, updated in `requestAnimationFrame`
+- **Navbar**: background/blur/border strengthen on scroll (>8px), sliding active link indicator, animated drawer
+- **Hero**: staggered entrance, avatar glow pulse, floating chips, ghost word parallax (≤24px)
+- **Hover/focus**: cards lift 2px with accent border, rows highlight with icon nudge, buttons scale to 0.98 on press, focus rings transition
+- **Route transitions**: fade/slide-up on pathname change, scroll to top unless hash present
+- **Theme toggle**: temporary `theme-transition` class (350ms) animates colors, icon rotates/crossfades
+- **Skeleton loading**: shimmer placeholders for loading states
+
+### Reduced Motion
+
+All motion respects `prefers-reduced-motion: reduce`:
+- CSS `@media` block disables transitions/animations, sets `scroll-behavior: auto`
+- `useReducedMotion` hook for JS-driven motion
+- Reveal elements show immediately, progress bar and back-to-top work without animation
+- Content is always visible when JavaScript fails or observer never fires
+
+## Project Action Buttons
+
+Projects now display labeled action buttons (never icon-only):
+
+- **Repository** — GitHub icon, appears when `github_url` passes `safeUrl()` (http/https only)
+- **Live demo** — external-link icon, appears when `live_url` passes `safeUrl()` (http/https only)
+- **Documents** — chip buttons per file in `files[]`, each with file-type icon (pdf, word, presentation, spreadsheet, image, generic), truncated name with full name in `title`, extension badge. Only rendered when `url` passes `safeStorageUrl()`: https, Supabase hostname, path under `/storage/v1/object/public/project-documents/` or `/storage/v1/object/public/portfolio/`. Hostile URLs (javascript:, data:, http://, wrong host, wrong prefix) are silently skipped.
+
+All links use `target="_blank" rel="noopener noreferrer"` with descriptive `aria-label` including project title.
+
+## Content Check Script (`check:content`)
+
+`npm run check:content` fetches the live Supabase content and prints a summary for verifying admin data:
 
 ```powershell
-# Against localhost preview:
-powershell -ExecutionPolicy Bypass -File scripts\security-smoke.ps1
-
-# Against the live Vercel deployment:
-powershell -ExecutionPolicy Bypass -File scripts\security-smoke.ps1 -SiteUrl "https://your-domain.vercel.app"
+npm run check:content
 ```
+
+Output example:
+```
+version: 5
+sections: 6
+  - about (visible)
+  - skills (visible)
+  - projects (visible)
+  - education (visible)
+  - certifications (visible)
+  - contact (visible)
+projects: 3
+  - Multi-Region Deployment [repo ✓, live ✓, docs 2, cover ✓]
+  - Secondary Pipeline [repo ✗, live ✗, docs 0, cover ✗]
+skills: 1
+education: 1
+certifications: 2
+publications: 1
+profile.avatar_url: set
+profile.resume_url: unset
+```
+
+Exits 0 on success, 1 with a clear one-line reason on failure (missing env, invalid URL, network error, non-2xx, invalid JSON, unexpected shape).
+
+## Security Smoke Test
 
 ---
 
