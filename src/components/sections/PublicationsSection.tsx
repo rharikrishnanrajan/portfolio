@@ -34,14 +34,14 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
           titleId={titleId}
           showDivider
           rightMeta={
-            <p className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+            <p className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted animate-fade-up" style={{ '--reveal-i': 0 }}>
               <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>{content.publications.length} PUBLISHED ITEMS</span>
             </p>
           }
         />
 
-        <div className="divide-y border-b border-line">
+        <div className="divide-y border-b border-line animate-fade-up" style={{ '--reveal-i': 1 }}>
           {content.publications.map((pub, idx) => {
             const publishedDate = formatMonthYear(pub.published_on)
             const safePubUrl = safeUrl(pub.url, { allowMailtoTel: false })
@@ -49,7 +49,7 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
             return (
               <article
                 key={pub.id}
-                className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-start transition-colors hover:bg-surface/75"
+                className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-start row-interactive"
               >
                 <div className="md:col-span-2 font-mono text-xs uppercase tracking-[0.2em] text-muted pt-1 tabular-nums">
                   {String(idx + 1).padStart(2, '0')} // PUB
@@ -84,8 +84,8 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
                       href={safePubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Read ${pub.title}`}
-                      className="h-10 w-10 border border-line bg-surface flex items-center justify-center text-muted hover:text-ink hover:border-accent transition-colors shrink-0"
+                      aria-label={`Read ${pub.title} (opens in a new tab)`}
+                      className="h-10 w-10 border border-line bg-surface flex items-center justify-center text-muted hover:text-ink hover:border-accent transition-colors shrink-0 link-icon"
                     >
                       <ExternalLink className="h-4 w-4" aria-hidden="true" />
                     </a>

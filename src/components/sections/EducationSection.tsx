@@ -28,7 +28,7 @@ export function EducationSection({ section }: EducationSectionProps) {
           showDivider
           rightMeta={
             section.subtitle ? (
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted animate-fade-up" style={{ '--reveal-i': 0 }}>
                 {section.subtitle}
               </p>
             ) : null
@@ -36,11 +36,12 @@ export function EducationSection({ section }: EducationSectionProps) {
         />
 
         {content.education.length > 0 ? (
-          <div className="divide-y border-b border-line">
+          <div className="divide-y border-b border-line animate-fade-up" style={{ '--reveal-i': 0 }}>
             {content.education.map((edu, idx) => (
               <article
                 key={edu.id}
-                className="py-8 grid gap-4 md:grid-cols-12 md:items-center"
+                className="py-8 grid gap-4 md:grid-cols-12 md:items-center row-interactive animate-fade-up"
+                style={{ '--reveal-i': idx % 3 }}
               >
                 <div className="md:col-span-3 font-mono text-xs uppercase tracking-[0.2em] text-muted tabular-nums">
                   {String(idx + 1).padStart(2, '0')} // DEGREE

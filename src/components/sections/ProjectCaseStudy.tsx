@@ -80,7 +80,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
           </div>
 
           {project.outcome ? (
-            <div className="card p-5 space-y-2">
+            <div className="card verified-outcome-shimmer p-5 space-y-2">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                 VERIFIED OUTCOME
               </p>
@@ -115,7 +115,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Repository for ${project.title} (opens in a new tab)`}
-                    className="btn-secondary h-10 px-4 min-w-[120px] text-sm"
+                    className="btn-secondary h-10 px-4 min-w-[120px] text-sm btn-press"
                   >
                     <GitBranch className="h-4 w-4 shrink-0" aria-hidden="true" />
                     <span className="hidden sm:inline">Repository</span>
@@ -128,7 +128,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Live demo for ${project.title} (opens in a new tab)`}
-                    className="btn-secondary h-10 px-4 min-w-[120px] text-sm"
+                    className="btn-secondary h-10 px-4 min-w-[120px] text-sm btn-press"
                   >
                     <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
                     <span className="hidden sm:inline">Live demo</span>
@@ -183,7 +183,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
           ) : null}
 
           {safeFiles.length > 0 ? (
-            <div className="pt-2 flex flex-wrap items-center gap-2">
+            <div className="pt-2 flex flex-wrap items-center gap-2 animate-fade-up" style={{ '--reveal-i': 6 }}>
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
                 Documents ({safeFiles.length}):
               </span>
@@ -195,7 +195,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
                   rel="noopener noreferrer"
                   aria-label={`${file.name} for ${project.title} (opens in a new tab)`}
                   title={file.name}
-                  className="inline-flex items-center gap-1.5 border border-line bg-surface px-3 py-1.5 font-mono text-[10px] text-ink hover:border-accent transition-colors"
+                  className="inline-flex items-center gap-1.5 border border-line bg-surface px-3 py-1.5 font-mono text-[10px] text-ink hover:border-accent transition-colors hover:shadow-[0_4px_12px_rgb(var(--accent)/0.15)] btn-press"
                 >
                   {getFileTypeIcon(file)}
                   <span className="truncate max-w-[160px]">{truncateFileName(file.name)}</span>

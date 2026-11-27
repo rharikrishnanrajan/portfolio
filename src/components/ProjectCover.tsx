@@ -48,7 +48,7 @@ export function ProjectCover({ project }: ProjectCoverProps) {
   }
 
   return (
-    <div className="relative overflow-hidden border border-line bg-surface aspect-[16/9]">
+    <div className="cover-wrapper relative overflow-hidden border border-line bg-surface aspect-[16/9]">
       {/* Shimmer placeholder */}
       {showShimmer && (
         <div
@@ -68,7 +68,7 @@ export function ProjectCover({ project }: ProjectCoverProps) {
         onLoad={handleLoad}
         onError={handleError}
         className={`
-          h-full w-full object-cover transition-opacity duration-300
+          h-full w-full object-cover transition-opacity duration-300 transition-transform duration-700 ease-out
           ${isLoaded ? 'opacity-100' : 'opacity-0'}
         `}
       />

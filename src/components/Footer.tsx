@@ -50,7 +50,7 @@ export function Footer() {
     <footer className="border-t border-line/60 bg-bg">
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="grid gap-12 lg:grid-cols-12">
-          <div className="lg:col-span-5 space-y-4">
+          <div className="lg:col-span-5 space-y-4 animate-fade-up" style={{ '--reveal-i': 0 }}>
             <div className="flex items-center gap-3">
               <span className="inline-flex h-9 w-9 items-center justify-center border border-line bg-surface font-mono text-xs font-bold tracking-wider text-ink">
                 {settings.logo_text}
@@ -61,24 +61,24 @@ export function Footer() {
             </div>
 
             {hero.roles.length > 0 ? (
-              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted">
+              <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted animate-fade-up" style={{ '--reveal-i': 1 }}>
                 {hero.roles.join('  ·  ')}
               </p>
             ) : null}
 
             {footer.blurb ? (
-              <p className="text-sm text-muted leading-relaxed max-w-sm whitespace-pre-line">
+              <p className="text-sm text-muted leading-relaxed max-w-sm whitespace-pre-line animate-fade-up" style={{ '--reveal-i': 2 }}>
                 {footer.blurb}
               </p>
             ) : null}
           </div>
 
-          <div className="lg:col-span-3 space-y-4">
-            <p className="eyebrow">{footer.index_title || 'INDEX'}</p>
+          <div className="lg:col-span-3 space-y-4 animate-fade-up" style={{ '--reveal-i': 1 }}>
+            <p className="eyebrow animate-fade-up" style={{ '--reveal-i': 0 }}>{footer.index_title || 'INDEX'}</p>
             {navSections.length > 0 ? (
               <nav aria-label="Footer">
                 <ul className="space-y-3">
-                  {navSections.map((sec) => {
+                  {navSections.map((sec, idx) => {
                     const label = sec.nav_label || sec.title || sec.slug
                     const href = isHome ? `#${sec.slug}` : `/#${sec.slug}`
                     return (
@@ -86,14 +86,16 @@ export function Footer() {
                         {isHome ? (
                           <a
                             href={href}
-                            className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted hover:text-ink transition-colors"
+                            className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted hover:text-ink transition-colors animate-fade-up"
+                            style={{ '--reveal-i': idx }}
                           >
                             {label}
                           </a>
                         ) : (
                           <Link
                             to={href}
-                            className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted hover:text-ink transition-colors"
+                            className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted hover:text-ink transition-colors animate-fade-up"
+                            style={{ '--reveal-i': idx }}
                           >
                             {label}
                           </Link>
@@ -106,22 +108,23 @@ export function Footer() {
             ) : null}
           </div>
 
-          <div className="lg:col-span-4 space-y-4">
-            <p className="eyebrow">{footer.direct_title || 'DIRECT'}</p>
+          <div className="lg:col-span-4 space-y-4 animate-fade-up" style={{ '--reveal-i': 2 }}>
+            <p className="eyebrow animate-fade-up" style={{ '--reveal-i': 0 }}>{footer.direct_title || 'DIRECT'}</p>
             <ul className="space-y-3.5">
               {profile?.email && safeEmailHref ? (
                 <li>
                   <a
                     href={safeEmailHref}
-                    className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors"
+                    className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors animate-fade-up row-interactive"
+                    style={{ '--reveal-i': 1 }}
                   >
-                    <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <Mail className="h-4 w-4 shrink-0 link-icon" aria-hidden="true" />
                     <span>{profile.email}</span>
                   </a>
                 </li>
               ) : null}
 
-              {safeSocials.map((link) => {
+              {safeSocials.map((link, idx) => {
                 const IconComponent = getDirectIcon(link.icon)
                 return (
                   <li key={link.id}>
@@ -129,9 +132,10 @@ export function Footer() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors"
+                      className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors animate-fade-up row-interactive"
+                      style={{ '--reveal-i': 2 + idx }}
                     >
-                      <IconComponent className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <IconComponent className="h-4 w-4 shrink-0 link-icon" aria-hidden="true" />
                       <span>{link.label}</span>
                     </a>
                   </li>
@@ -142,9 +146,10 @@ export function Footer() {
                 <li>
                   <a
                     href={safePhoneHref}
-                    className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors"
+                    className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors animate-fade-up row-interactive"
+                    style={{ '--reveal-i': 5 }}
                   >
-                    <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <Phone className="h-4 w-4 shrink-0 link-icon" aria-hidden="true" />
                     <span>{profile.phone}</span>
                   </a>
                 </li>
@@ -156,9 +161,10 @@ export function Footer() {
                     href={safeResumeHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors"
+                    className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors animate-fade-up row-interactive"
+                    style={{ '--reveal-i': 6 }}
                   >
-                    <FileDown className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <FileDown className="h-4 w-4 shrink-0 link-icon" aria-hidden="true" />
                     <span>Resume</span>
                   </a>
                 </li>
@@ -167,7 +173,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 pt-8 border-t border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="mt-14 pt-8 border-t border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-up" style={{ '--reveal-i': 3 }}>
           <p className="font-mono text-xs text-muted">{copyrightText}</p>
 
           <p className="inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-muted">

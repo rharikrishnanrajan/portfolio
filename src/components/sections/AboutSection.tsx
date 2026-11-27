@@ -26,31 +26,37 @@ export function AboutSection({ section }: AboutSectionProps) {
       className={`py-20 sm:py-24 border-t border-line/60 scroll-mt-16 reveal ${isVisible ? 'is-visible' : ''}`}
     >
       <div className="mx-auto max-w-6xl px-6">
+        {/* Section header with staggered reveal (A7) */}
+        <div className="reveal-header mb-12">
+          {section.eyebrow ? (
+            <p className="eyebrow animate-fade-up" style={{ '--reveal-i': 0 }}>
+              {section.eyebrow}
+            </p>
+          ) : null}
+          <h2
+            id={titleId}
+            className="mt-3 text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-[1.06] text-ink animate-fade-up"
+            style={{ '--reveal-i': 1 }}
+          >
+            {section.title || 'About'}
+          </h2>
+          {section.subtitle ? (
+            <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.2em] text-muted leading-relaxed animate-fade-up" style={{ '--reveal-i': 2 }}>
+              {section.subtitle}
+            </p>
+          ) : null}
+        </div>
+
         <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-5 space-y-8">
-            <div>
-              {section.eyebrow ? <p className="eyebrow">{section.eyebrow}</p> : null}
-              <h2
-                id={titleId}
-                className="mt-3 text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-[1.06] text-ink"
-              >
-                {section.title || 'About'}
-              </h2>
-              {section.subtitle ? (
-                <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.2em] text-muted leading-relaxed">
-                  {section.subtitle}
-                </p>
-              ) : null}
-            </div>
-
             {content.overview_rows.length > 0 ? (
-              <div className="card p-6">
-                <p className="eyebrow mb-4">{overviewTitle}</p>
+              <div className="card-interactive p-6 animate-fade-up" style={{ '--reveal-i': 0 }}>
+                <p className="eyebrow mb-4 animate-fade-up" style={{ '--reveal-i': 0 }}>{overviewTitle}</p>
                 <dl className="divide-y divide-line">
                   {content.overview_rows.map((row) => (
                     <div
                       key={row.id}
-                      className="py-3.5 first:pt-1 last:pb-1 flex items-baseline justify-between gap-4"
+                      className="py-3.5 first:pt-1 last:pb-1 flex items-baseline justify-between gap-4 row-interactive"
                     >
                       <dt className="text-sm text-muted">{row.label}</dt>
                       <dd className="font-mono text-xs sm:text-sm font-semibold text-ink text-right">
@@ -65,7 +71,7 @@ export function AboutSection({ section }: AboutSectionProps) {
 
           <div className="lg:col-span-7 space-y-10">
             {content.profile?.summary ? (
-              <div className="border-l-2 border-line pl-6">
+              <div className="border-l-2 border-line pl-6 animate-fade-up" style={{ '--reveal-i': 1 }}>
                 <p className="text-base sm:text-lg text-ink/90 leading-relaxed whitespace-pre-line">
                   {content.profile.summary}
                 </p>
@@ -73,7 +79,7 @@ export function AboutSection({ section }: AboutSectionProps) {
             ) : null}
 
             {content.competencies.length > 0 ? (
-              <div className="pt-8 border-t border-line/60 space-y-5">
+              <div className="pt-8 border-t border-line/60 space-y-5 animate-fade-up" style={{ '--reveal-i': 2 }}>
                 <div className="flex items-center justify-between gap-4">
                   <h3 className="font-mono text-xs uppercase tracking-[0.2em] font-semibold text-ink">
                     {competenciesTitle}
@@ -87,7 +93,8 @@ export function AboutSection({ section }: AboutSectionProps) {
                   {content.competencies.map((item, idx) => (
                     <li
                       key={item.id}
-                      className="card p-4 sm:p-5 flex items-start gap-4 transition-colors hover:border-accent/50"
+                      className="card-interactive p-4 sm:p-5 flex items-start gap-4 animate-fade-up"
+                      style={{ '--reveal-i': 3 + (idx % 2) }}
                     >
                       <span className="font-mono text-xs text-muted pt-0.5 shrink-0 tabular-nums">
                         {String(idx + 1).padStart(2, '0')}
@@ -100,9 +107,13 @@ export function AboutSection({ section }: AboutSectionProps) {
             ) : null}
 
             {aboutContent.highlights.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-3 animate-fade-up" style={{ '--reveal-i': 3 }}>
                 {aboutContent.highlights.map((tile, idx) => (
-                  <div key={`${tile.label}-${idx}`} className="card p-4 sm:p-5 space-y-1.5">
+                  <div
+                    key={`${tile.label}-${idx}`}
+                    className="card-interactive p-4 sm:p-5 space-y-1.5 animate-fade-up"
+                    style={{ '--reveal-i': 4 + idx }}
+                  >
                     <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
                       {tile.label}
                     </p>

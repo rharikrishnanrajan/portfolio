@@ -38,7 +38,7 @@ export function CertificationsSection({ section }: CertificationsSectionProps) {
           titleId={titleId}
           showDivider
           rightMeta={
-            <p className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+            <p className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted animate-fade-up" style={{ '--reveal-i': 0 }}>
               <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
                 {featuredCerts.length} OF {totalCount} ACCREDITED CREDENTIALS
@@ -48,7 +48,7 @@ export function CertificationsSection({ section }: CertificationsSectionProps) {
         />
 
         {featuredCerts.length > 0 ? (
-          <div className="divide-y divide-line">
+          <div className="divide-y divide-line animate-fade-up" style={{ '--reveal-i': 1 }}>
             {featuredCerts.map((cert, idx) => (
               <CertificationRow key={cert.id} certification={cert} index={idx} />
             ))}
@@ -56,8 +56,8 @@ export function CertificationsSection({ section }: CertificationsSectionProps) {
         ) : null}
 
         {hasArchive ? (
-          <div className="pt-10 border-t border-line flex justify-center">
-            <Link to="/certifications" className="btn-primary px-8 py-4">
+          <div className="pt-10 border-t border-line flex justify-center animate-fade-up" style={{ '--reveal-i': 2 }}>
+            <Link to="/certifications" className="btn-primary px-8 py-4 btn-press">
               <span>
                 {archiveLabel} ({totalCount})
               </span>

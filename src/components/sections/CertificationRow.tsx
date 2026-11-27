@@ -13,7 +13,7 @@ export function CertificationRow({ certification, index }: CertificationRowProps
   const safeCredUrl = safeUrl(certification.credential_url, { allowMailtoTel: false })
 
   return (
-    <article className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-center transition-colors hover:bg-surface/75">
+    <article className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-center row-interactive">
       <div className="md:col-span-2 font-mono text-xs uppercase tracking-[0.2em] text-muted tabular-nums">
         {String(index + 1).padStart(2, '0')} // CERT
       </div>
@@ -39,8 +39,8 @@ export function CertificationRow({ certification, index }: CertificationRowProps
             href={safeCredUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`View ${certification.title} credential`}
-            className="h-10 w-10 border border-line bg-surface flex items-center justify-center text-muted hover:text-ink hover:border-accent transition-colors shrink-0"
+            aria-label={`View ${certification.title} credential (opens in a new tab)`}
+            className="h-10 w-10 border border-line bg-surface flex items-center justify-center text-muted hover:text-ink hover:border-accent transition-colors shrink-0 link-icon"
           >
             <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>

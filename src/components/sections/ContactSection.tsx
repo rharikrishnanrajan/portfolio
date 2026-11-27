@@ -174,7 +174,7 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-5 space-y-8">
-            <div>
+            <div className="reveal-header mb-8">
               <SectionHeader
                 eyebrow={section.eyebrow || 'CONNECT'}
                 prefixNumber={displayNumber}
@@ -182,18 +182,20 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
                 titleId={titleId}
               />
               {section.subtitle ? (
-                <p className="mt-5 text-base text-muted leading-relaxed">{section.subtitle}</p>
+                <p className="mt-5 text-base text-muted leading-relaxed animate-fade-up" style={{ '--reveal-i': 2 }}>
+                  {section.subtitle}
+                </p>
               ) : null}
             </div>
 
-            <div className="border-t border-b border-line divide-y">
+            <div className="border-t border-b border-line divide-y animate-fade-up" style={{ '--reveal-i': 3 }}>
               {profile?.email && safeEmailHref ? (
                 <a
                   href={safeEmailHref}
-                  className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group"
+                  className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group row-interactive"
                 >
                   <Mail
-                    className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors"
+                    className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors link-icon"
                     aria-hidden="true"
                   />
                   <span className="truncate">{profile.email}</span>
@@ -203,10 +205,10 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
               {profile?.phone && safePhoneHref ? (
                 <a
                   href={safePhoneHref}
-                  className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group"
+                  className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group row-interactive"
                 >
                   <Phone
-                    className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors"
+                    className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors link-icon"
                     aria-hidden="true"
                   />
                   <span>{profile.phone}</span>
@@ -214,13 +216,13 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
               ) : null}
 
               {profile?.location ? (
-                <div className="py-4 flex items-center gap-4 text-sm text-muted">
-                  <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <div className="py-4 flex items-center gap-4 text-sm text-muted row-interactive">
+                  <MapPin className="h-4 w-4 shrink-0 link-icon" aria-hidden="true" />
                   <span>{profile.location}</span>
                 </div>
               ) : null}
 
-              {safeSocials.map((link) => {
+              {safeSocials.map((link, idx) => {
                 const IconComponent = getSocialIcon(link.icon)
                 return (
                   <a
@@ -228,10 +230,11 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group"
+                    className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group row-interactive animate-fade-up"
+                    style={{ '--reveal-i': 4 + idx }}
                   >
                     <IconComponent
-                      className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors"
+                      className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors link-icon"
                       aria-hidden="true"
                     />
                     <span className="truncate">{link.label}</span>
@@ -244,10 +247,10 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
                   href={safeResumeHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group"
+                  className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group row-interactive"
                 >
                   <FileDown
-                    className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors"
+                    className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors link-icon"
                     aria-hidden="true"
                   />
                   <span>Download resume</span>
@@ -256,7 +259,7 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 animate-fade-up" style={{ '--reveal-i': 5 }}>
             {sentSuccess ? (
               <div className="card p-8 space-y-5" role="status" aria-live="polite">
                 <p className="eyebrow text-accent">Message Dispatched</p>

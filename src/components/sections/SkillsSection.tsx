@@ -27,7 +27,7 @@ export function SkillsSection({ section }: SkillsSectionProps) {
           titleId={titleId}
           rightMeta={
             section.subtitle ? (
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted animate-fade-up" style={{ '--reveal-i': 0 }}>
                 {section.subtitle}
               </p>
             ) : null
@@ -39,7 +39,8 @@ export function SkillsSection({ section }: SkillsSectionProps) {
             {content.skill_domains.map((domain, idx) => (
               <article
                 key={domain.id}
-                className="bg-surface p-7 sm:p-8 flex flex-col justify-between"
+                className="bg-surface p-7 sm:p-8 flex flex-col justify-between card-interactive animate-fade-up"
+                style={{ '--reveal-i': idx % 3 }}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 pb-4 border-b border-line">
@@ -60,7 +61,7 @@ export function SkillsSection({ section }: SkillsSectionProps) {
                       {domain.tools.map((tool, toolIdx) => (
                         <li
                           key={`${tool}-${toolIdx}`}
-                          className="border border-line bg-bg/60 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.13em] text-muted"
+                          className="border border-line bg-bg/60 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.13em] text-muted transition-colors hover:border-accent"
                         >
                           {tool}
                         </li>
