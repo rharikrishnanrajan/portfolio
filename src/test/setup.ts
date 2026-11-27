@@ -17,21 +17,20 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 // Mock IntersectionObserver for jsdom (basic implementation)
-function MockIntersectionObserver(
-  callback: IntersectionObserverCallback,
-  options?: IntersectionObserverInit
-) {
-  return {
-    root: null,
-    rootMargin: '',
-    thresholds: [],
-    callback,
-    options,
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-    takeRecords: vi.fn(),
-  }
+class MockIntersectionObserver {
+  root = null
+  rootMargin = ''
+  thresholds = []
+
+  constructor(
+    public callback: IntersectionObserverCallback,
+    public options?: IntersectionObserverInit
+  ) {}
+
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+  takeRecords = vi.fn()
 }
 
 Object.defineProperty(window, 'IntersectionObserver', {
@@ -40,12 +39,10 @@ Object.defineProperty(window, 'IntersectionObserver', {
 })
 
 // Mock ResizeObserver for jsdom
-function MockResizeObserver() {
-  return {
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  }
+class MockResizeObserver {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
 }
 
 Object.defineProperty(window, 'ResizeObserver', {

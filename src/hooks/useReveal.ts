@@ -32,7 +32,7 @@ function getSharedObserver(): IntersectionObserver {
   return sharedObserver
 }
 
-export function useReveal<T extends HTMLElement>(): { ref: React.RefObject<T | null>; isVisible: boolean } {
+export function useReveal<T extends HTMLElement>(): { ref: React.RefObject<T>; isVisible: boolean } {
   const reducedMotion = useReducedMotion()
   const ref = useRef<T | null>(null)
   const [isVisible, setIsVisible] = useState<boolean>(() => {

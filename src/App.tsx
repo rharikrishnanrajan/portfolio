@@ -87,7 +87,7 @@ export function AppRoutes() {
   }
 
   if (status === 'unavailable') {
-    return <UnavailableView onRetry={retry} isRetrying={isRefreshing} />
+    return <UnavailableView onRetry={retry} isRefreshing={isRefreshing} />
   }
 
   if (status === 'empty') {
