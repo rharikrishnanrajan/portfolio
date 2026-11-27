@@ -4,6 +4,30 @@
 
 ---
 
+## PART A Progress
+
+| Item | Status | Files |
+|------|--------|-------|
+| A1: Motion tokens in `src/index.css` + `js` class in `main.tsx` | ✅ | `src/index.css`, `src/main.tsx` |
+| A2: Reveal-on-scroll hook (`useReveal`) with shared IntersectionObserver | ✅ | `src/hooks/useReveal.ts` |
+| A3: Smooth scroll + focus + back-to-top | ☐ | |
+| A4: Scroll progress bar | ☐ | |
+| A5: Navbar and drawer motion | ☐ | |
+| A6: Hero entrance and float | ☐ | |
+| A7: Section/card/row/button/cover hover and reveal | ☐ | |
+| A8: Route transitions | ☐ | |
+| A9: Theme transition | ☐ | |
+| A10: Skeleton loading | ☐ | |
+| A11: Reduced-motion block in CSS + `useReducedMotion` hook | ✅ | `src/index.css`, `src/hooks/useReducedMotion.ts` |
+| A12: Performance rules (throttled listeners, will-change, cleanup) | ☐ | |
+| A13: Tests for motion system | ☐ | |
+| D1: `verify:dist` passes, bundle budget, no source maps | ☐ | |
+| D2: README.md updated (motion, reduced motion, action buttons, check:content) | ☐ | |
+| D3: Security re-audit on touched files | ☐ | |
+| D4: PORTFOLIO_PROGRESS.md updated, commit | ☐ | |
+
+---
+
 ## Task Status
 
 | # | Task | Status |

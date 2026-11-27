@@ -13,6 +13,17 @@
   --theme-font-heading: "Inter Variable", system-ui, -apple-system, sans-serif;
   --theme-font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
   color-scheme: dark;
+
+  /* Motion tokens (A1) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+  --dur-fast: 150ms;
+  --dur-base: 300ms;
+  --dur-slow: 600ms;
+  --dur-hero: 900ms;
+
+  /* Scroll progress (A4) */
+  --scroll-progress: 0;
 }
 
 :root[data-theme="light"] {
@@ -203,10 +214,241 @@
   animation: fade-in 200ms ease-out forwards;
 }
 
+/* Motion keyframes (A1) */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Motion utility classes (A1) */
+.animate-fade-up {
+  animation: fade-up var(--dur-slow) var(--ease-out) forwards;
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgb(var(--border) / 0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.animate-drawer-in {
+  animation: drawer-in var(--dur-base) var(--ease-out) forwards;
+}
+
+/* Stagger delays */
+.reveal-stagger-1 { animation-delay: 60ms; }
+.reveal-stagger-2 { animation-delay: 120ms; }
+.reveal-stagger-3 { animation-delay: 180ms; }
+.reveal-stagger-4 { animation-delay: 240ms; }
+.reveal-stagger-5 { animation-delay: 300ms; }
+.reveal-stagger-6 { animation-delay: 360ms; }
+
+/* Scroll progress bar (A4) */
+.scroll-progress-bar {
+  position: fixed;
+  top: 64px; /* below navbar */
+  left: 0;
+  height: 2px;
+  background: rgb(var(--accent));
+  transform-origin: left center;
+  transform: scaleX(var(--scroll-progress, 0));
+  z-index: 50;
+  pointer-events: none;
+}
+
+/* Smooth scroll with reduced motion (A3) */
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in {
-    animation: none;
+  html {
+    scroll-behavior: auto;
+  }
+  .scroll-progress-bar {
+    transition: transform 0.01ms;
+  }
+}
+
+/* Theme transition (A9) */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 350ms ease, color 350ms ease, border-color 350ms ease, fill 350ms ease, stroke 350ms ease !important;
+}
+
+/* Reveal utilities gated by .js class (A1) */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Section header staggered reveal */
+.js .reveal-header .eyebrow { --reveal-i: 0; }
+.js .reveal-header h2 { --reveal-i: 1; }
+.js .reveal-header .subtitle { --reveal-i: 2; }
+
+/* Card hover/focus transitions (A7) */
+.card-interactive {
+  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.card-interactive:hover,
+.card-interactive:focus-within {
+  transform: translateY(-2px);
+  border-color: rgb(var(--accent));
+  box-shadow: 0 8px 24px rgb(var(--accent) / 0.15);
+}
+
+/* Row hover (A7) */
+.row-interactive {
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.row-interactive:hover {
+  background-color: rgb(var(--surface) / 0.6);
+}
+.row-interactive .link-icon {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.row-interactive:hover .link-icon {
+  transform: translateX(4px);
+}
+
+/* Button press (A7) */
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* Focus ring transition (A7) */
+:focus-visible {
+  transition: outline-color var(--dur-fast) var(--ease-out), outline-offset var(--dur-fast) var(--ease-out);
+}
+
+/* ProjectCover hover zoom (A7) */
+.cover-wrapper {
+  overflow: hidden;
+}
+.cover-wrapper img {
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.cover-wrapper:hover img {
+  transform: scale(1.03);
+}
+
+/* Verified outcome shimmer (A7) */
+.verified-outcome-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.verified-outcome-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(var(--accent) / 0.15), transparent);
+  background-size: 200% 100%;
+  opacity: 0;
+  animation: shimmer 1.5s ease-out forwards;
+}
+
+/* Back to top button (A3) */
+.back-to-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 40;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(16px);
+  transition: opacity var(--dur-fast) var(--ease-out), visibility var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.back-to-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Skeleton loading (A10) */
+.skeleton {
+  background: linear-gradient(90deg, rgb(var(--surface)), rgb(var(--border) / 0.3), rgb(var(--surface)));
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* Reduced motion: disable all keyframe animations and transitions (A11) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-up,
+  .animate-float,
+  .animate-glow-pulse,
+  .animate-shimmer,
+  .animate-drawer-in {
+    animation: none !important;
+  }
+  .animate-fade-up {
     opacity: 1;
     transform: none;
+  }
+  .js .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .skeleton {
+    animation: none;
+    background: rgb(var(--border) / 0.2);
+  }
+  .card-interactive:hover,
+  .card-interactive:focus-within {
+    transform: none;
+  }
+  .row-interactive:hover .link-icon {
+    transform: none;
+  }
+  .cover-wrapper:hover img {
+    transform: none;
+  }
+  .verified-outcome-shimmer::after {
+    animation: none;
+    opacity: 0;
+  }
+  .back-to-top {
+    transition: opacity 0.01ms, visibility 0.01ms, transform 0.01ms;
+  }
+  .scroll-progress-bar {
+    transition: transform 0.01ms;
   }
 }
