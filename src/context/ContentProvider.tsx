@@ -173,14 +173,15 @@ export function ContentProvider({
         })
         if (!mountedRef.current || controller.signal.aborted) return
 
+        const prevVersion = currentVersionRef.current
         writeCachedContent(next)
         currentVersionRef.current = next.version
         hasFallbackRef.current = true
         setContent(next)
         setSource('live')
         setStatus(hasMeaningfulContent(next) ? 'ready' : 'empty')
-        // Trigger content updated pill on subsequent loads (not initial)
-        if (!isInitialLoadRef.current) {
+        // Trigger content updated pill only when version increases (not on initial load or same-version refetches)
+        if (!isInitialLoadRef.current && next.version > prevVersion) {
           setContentUpdateTrigger((t) => t + 1)
         }
         isInitialLoadRef.current = false

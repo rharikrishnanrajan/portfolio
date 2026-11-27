@@ -60,7 +60,8 @@ async function main() {
 
   if (!url || !anonKey) {
     console.error('FAIL: Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
 
   let normalizedUrl
@@ -68,7 +69,8 @@ async function main() {
     normalizedUrl = new URL(url).toString()
   } catch {
     console.error('FAIL: Invalid VITE_SUPABASE_URL')
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
 
   const rpcEndpoint = new URL('/rest/v1/rpc/get_site_content', normalizedUrl).toString()
@@ -86,12 +88,14 @@ async function main() {
     })
   } catch (err) {
     console.error(`FAIL: Network error - ${err.message}`)
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
 
   if (!response.ok) {
     console.error(`FAIL: RPC returned ${response.status} ${response.statusText}`)
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
 
   let data
@@ -99,12 +103,14 @@ async function main() {
     data = await response.json()
   } catch {
     console.error('FAIL: Invalid JSON response')
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
 
   if (!data || typeof data !== 'object') {
     console.error('FAIL: Unexpected response shape')
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
 
   // Print summary - ONLY counts and titles, never keys
@@ -119,6 +125,7 @@ async function main() {
     hasRepo: typeof p.github_url === 'string' && p.github_url.trim().length > 0,
     hasLiveDemo: typeof p.live_url === 'string' && p.live_url.trim().length > 0,
     docCount: Array.isArray(p.files) ? p.files.length : 0,
+    hasCover: typeof p.cover_url === 'string' && p.cover_url.trim().length > 0,
   }))
 
   const skills = Array.isArray(data.skill_domains) ? data.skill_domains : []
@@ -141,7 +148,8 @@ async function main() {
     const repo = p.hasRepo ? 'repo ✓' : 'repo ✗'
     const live = p.hasLiveDemo ? 'live ✓' : 'live ✗'
     const docs = p.docCount > 0 ? `docs ${p.docCount}` : 'docs 0'
-    console.log(`  - ${truncate(p.title)} [${repo}, ${live}, ${docs}]`)
+    const cover = p.hasCover ? 'cover ✓' : 'cover ✗'
+    console.log(`  - ${truncate(p.title)} [${repo}, ${live}, ${docs}, ${cover}]`)
   }
   console.log(`skills: ${skills.length}`)
   console.log(`education: ${education.length}`)
@@ -150,7 +158,7 @@ async function main() {
   console.log(`profile.avatar_url: ${hasAvatar ? 'set' : 'unset'}`)
   console.log(`profile.resume_url: ${hasResume ? 'set' : 'unset'}`)
 
-  process.exit(0)
+  process.exitCode = 0
 }
 
 main()

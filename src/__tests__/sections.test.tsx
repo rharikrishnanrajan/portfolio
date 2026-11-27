@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { AppRoutes } from '../App'
 import { RegisteredSection } from '../components/sections/SectionRegistry'
+import { ProjectCover } from '../components/ProjectCover'
 import { ContentProvider } from '../context/ContentProvider'
 import { EMPTY_SITE_CONTENT } from '../lib/schemas'
 import type { SiteContent } from '../types/content'
@@ -365,7 +366,8 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       ),
     ).toBeTruthy()
     expect(screen.getByText('Secondary Pipeline')).toBeTruthy()
-    expect(screen.getByRole('img', { name: 'Multi-Region Deployment' })).toBeTruthy()
+    // Cover image on archive page (now uses shared ProjectCover component)
+    expect(screen.getByRole('img', { name: 'Multi-Region Deployment preview' })).toBeTruthy()
     // Archive page also shows labeled action buttons
     expect(screen.getByRole('link', { name: /Repository for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
     expect(screen.getByRole('link', { name: /Architecture\.pdf for Multi-Region Deployment \(opens in a new tab\)/i })).toBeTruthy()
@@ -388,6 +390,117 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
     renderAtRoute('/unknown-route')
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeTruthy()
     expect(screen.getByRole('link', { name: /Back to portfolio/i }).getAttribute('href')).toBe('/')
+  })
+
+  describe('ProjectCover component', () => {
+    function renderProjectCover(project: { cover_url: string | null; title: string }) {
+      return render(
+        <ContentProvider initialContent={makePortfolioContent()} disableLiveUpdates>
+          <MemoryRouter initialEntries={['/']}>
+            <ProjectCover project={{ ...makePortfolioContent().projects[0], ...project }} />
+          </MemoryRouter>
+        </ContentProvider>,
+      )
+    }
+
+    it('renders with a valid Supabase storage URL', () => {
+      const validCover = 'https://example.supabase.co/storage/v1/object/public/portfolio/projects/uuid/uuid-name.jpg'
+      renderProjectCover({ cover_url: validCover, title: 'Test Project' })
+
+      const img = screen.getByRole('img', { name: 'Test Project preview' })
+      expect(img).toBeTruthy()
+      expect(img.getAttribute('src')).toBe(validCover)
+      expect(img.getAttribute('width')).toBe('1280')
+      expect(img.getAttribute('height')).toBe('720')
+      expect(img.getAttribute('loading')).toBe('lazy')
+      expect(img.getAttribute('decoding')).toBe('async')
+      // Wrapper has correct styling
+      const wrapper = img.parentElement
+      expect(wrapper?.className).toContain('aspect-[16/9]')
+      expect(wrapper?.className).toContain('overflow-hidden')
+      expect(wrapper?.className).toContain('border')
+      expect(wrapper?.className).toContain('border-line')
+      expect(wrapper?.className).toContain('bg-surface')
+    })
+
+    it('does not render for javascript: URLs', () => {
+      renderProjectCover({ cover_url: 'javascript:alert(1)', title: 'Test Project' })
+      expect(screen.queryByRole('img', { name: 'Test Project preview' })).toBeNull()
+    })
+
+    it('does not render for data: URLs', () => {
+      renderProjectCover({ cover_url: 'data:image/png;base64,AAAA', title: 'Test Project' })
+      expect(screen.queryByRole('img', { name: 'Test Project preview' })).toBeNull()
+    })
+
+    it('does not render for http: URLs', () => {
+      renderProjectCover({ cover_url: 'http://example.supabase.co/storage/v1/object/public/portfolio/test.jpg', title: 'Test Project' })
+      expect(screen.queryByRole('img', { name: 'Test Project preview' })).toBeNull()
+    })
+
+    it('does not render for another host', () => {
+      renderProjectCover({ cover_url: 'https://evil.example.com/storage/v1/object/public/portfolio/test.jpg', title: 'Test Project' })
+      expect(screen.queryByRole('img', { name: 'Test Project preview' })).toBeNull()
+    })
+
+    it('does not render for path outside /storage/v1/object/public/', () => {
+      renderProjectCover({ cover_url: 'https://example.supabase.co/storage/v1/object/authenticated/portfolio/test.jpg', title: 'Test Project' })
+      expect(screen.queryByRole('img', { name: 'Test Project preview' })).toBeNull()
+    })
+
+    it('does not render for null cover_url', () => {
+      renderProjectCover({ cover_url: null, title: 'Test Project' })
+      expect(screen.queryByRole('img', { name: 'Test Project preview' })).toBeNull()
+    })
+
+    it('does not render for empty string cover_url', () => {
+      renderProjectCover({ cover_url: '', title: 'Test Project' })
+      expect(screen.queryByRole('img', { name: 'Test Project preview' })).toBeNull()
+    })
+
+    it('removes the box on load error', async () => {
+      renderProjectCover({ cover_url: 'https://example.supabase.co/storage/v1/object/public/portfolio/test.jpg', title: 'Test Project' })
+      const img = screen.getByRole('img', { name: 'Test Project preview' })
+      expect(img).toBeTruthy()
+
+      // Simulate error
+      fireEvent.error(img)
+
+      // The box should disappear
+      expect(screen.queryByRole('img', { name: 'Test Project preview' })).toBeNull()
+    })
+
+    it('has correct alt text', () => {
+      renderProjectCover({ cover_url: 'https://example.supabase.co/storage/v1/object/public/portfolio/test.jpg', title: 'My Awesome Project' })
+      const img = screen.getByRole('img', { name: 'My Awesome Project preview' })
+      expect(img.getAttribute('alt')).toBe('My Awesome Project preview')
+    })
+
+    it('has lazy loading and async decoding attributes', () => {
+      renderProjectCover({ cover_url: 'https://example.supabase.co/storage/v1/object/public/portfolio/test.jpg', title: 'Test Project' })
+      const img = screen.getByRole('img', { name: 'Test Project preview' })
+      expect(img.getAttribute('loading')).toBe('lazy')
+      expect(img.getAttribute('decoding')).toBe('async')
+    })
+
+    it('has explicit width and height attributes', () => {
+      renderProjectCover({ cover_url: 'https://example.supabase.co/storage/v1/object/public/portfolio/test.jpg', title: 'Test Project' })
+      const img = screen.getByRole('img', { name: 'Test Project preview' })
+      expect(img.getAttribute('width')).toBe('1280')
+      expect(img.getAttribute('height')).toBe('720')
+    })
+
+    it('renders on the archive page with the same component', async () => {
+      const { unmount } = renderAtRoute('/projects')
+      // The archive page uses the same ProjectCover component
+      const img = screen.getByRole('img', { name: 'Multi-Region Deployment preview' })
+      expect(img).toBeTruthy()
+      expect(img.getAttribute('width')).toBe('1280')
+      expect(img.getAttribute('height')).toBe('720')
+      expect(img.getAttribute('loading')).toBe('lazy')
+      expect(img.getAttribute('decoding')).toBe('async')
+      unmount()
+    })
   })
 
   it('toggles light/dark theme from Navbar and ignores unknown section types', () => {

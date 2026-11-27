@@ -88,6 +88,48 @@ describe('safeStorageUrl', () => {
     // Control characters
     expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/a/\u0007evil.pdf`, SUPABASE_ORIGIN)).toBeNull()
   })
+
+  it('rejects prefix only, prefix plus single slash, double slash, encoded traversal, and backslashes', () => {
+    // prefix only (no object path)
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/portfolio/`, SUPABASE_ORIGIN)).toBeNull()
+
+    // prefix plus a single slash (empty segment)
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents//`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/portfolio//`, SUPABASE_ORIGIN)).toBeNull()
+
+    // double slash inside the path
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/a//b.pdf`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents//a/b.pdf`, SUPABASE_ORIGIN)).toBeNull()
+
+    // encoded traversal attempts
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/%2e%2e/secret.pdf`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/a%2f..%2fsecret.pdf`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/a%5c..%5csecret.pdf`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/%2E%2E/%2F/secret.pdf`, SUPABASE_ORIGIN)).toBeNull()
+
+    // backslashes in path (use String.raw to avoid template literal escape interpretation)
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/a\\\\b.pdf`, SUPABASE_ORIGIN)).toBeNull()
+    expect(safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/a/b\\\\c.pdf`, SUPABASE_ORIGIN)).toBeNull()
+  })
+
+  it('allows valid single-segment name and valid <id>/<file>.pdf path', () => {
+    // valid single-segment name
+    expect(
+      safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/resume.pdf`, SUPABASE_ORIGIN),
+    ).toBe(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/resume.pdf`)
+    expect(
+      safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/portfolio/image.png`, SUPABASE_ORIGIN),
+    ).toBe(`${SUPABASE_ORIGIN}/storage/v1/object/public/portfolio/image.png`)
+
+    // valid <id>/<file>.pdf path
+    expect(
+      safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/abc123/Architecture.pdf`, SUPABASE_ORIGIN),
+    ).toBe(`${SUPABASE_ORIGIN}/storage/v1/object/public/project-documents/abc123/Architecture.pdf`)
+    expect(
+      safeStorageUrl(`${SUPABASE_ORIGIN}/storage/v1/object/public/portfolio/xyz789/resume.docx`, SUPABASE_ORIGIN),
+    ).toBe(`${SUPABASE_ORIGIN}/storage/v1/object/public/portfolio/xyz789/resume.docx`)
+  })
 })
 
 describe('safeHeroTarget', () => {

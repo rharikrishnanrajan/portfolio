@@ -1,6 +1,6 @@
 # Portfolio Build — Progress Log
 
-> Last updated: 2026-11-26
+> Last updated: 2026-11-27
 
 ---
 
@@ -15,6 +15,13 @@
 | 5 | `verify-dist.mjs` build safety script | ✅ Done |
 | 6 | Housekeeping (`.gitignore`, README, CI, engines) | ✅ Done |
 | 7 | Security re-audit | ✅ Done |
+| 8 | PART B1: Project Action Buttons — Root Cause Analysis | ✅ Done |
+| 9 | PART C1: Admin Coverage Audit Table | ✅ Done |
+| 10 | PART C2: Live Update "Content Updated" Pill | ✅ Done |
+| 11 | PART C3: `scripts/check-content.mjs` and `npm run check:content` | ✅ Done |
+| 12 | PART C4: Vercel.json CSP Confirmation | ✅ Done |
+| 13 | Fix `safeStorageUrl` validation and script exit codes | ✅ Done |
+| 14 | STEP 1: Project cover images — shared ProjectCover component | ✅ Done |
 
 ---
 
@@ -243,6 +250,88 @@ Checks run after `npm run build`:
 No changes needed — CSP already correct.
 
 ---
+
+## Task 13 — Fix `safeStorageUrl` validation and script exit codes
+
+### 1. `src/lib/safeUrl.ts` — `safeStorageUrl()` stricter validation
+- **Requirement**: Require a non-empty object path after the allowed prefix (`/storage/v1/object/public/project-documents/` or `/storage/v1/object/public/portfolio/`)
+- **Added checks**:
+  - Prefix only (e.g., `/storage/v1/object/public/project-documents/`) → rejected
+  - Prefix plus a single slash (e.g., `/storage/v1/object/public/project-documents//`) → rejected (empty segment)
+  - Double slash inside the path (e.g., `/project-documents/a//b.pdf`) → rejected
+  - `.` or `..` path segments → rejected
+  - Encoded traversal attempts (`%2e`, `%2f`, `%5c` case-insensitive) → rejected
+  - Backslashes in path → rejected
+  - Valid single-segment name (e.g., `/project-documents/resume.pdf`) → allowed
+  - Valid `<id>/<file>.pdf` path (e.g., `/project-documents/abc123/Architecture.pdf`) → allowed
+
+### 2. `src/__tests__/safeUrl.test.ts` — New test cases
+- Added test `"rejects prefix only, prefix plus single slash, double slash, encoded traversal, and backslashes"`
+- Added test `"allows valid single-segment name and valid <id>/<file>.pdf path"`
+- Existing test `"rejects non-https, other hosts, non-allowed prefixes, traversal, and empty paths"` continues to pass
+
+### 3. `scripts/check-content.mjs` — Replace `process.exit()` with natural exit
+- All `process.exit(n)` calls replaced with `process.exitCode = n; return`
+- Process now ends naturally, avoiding "Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)" on Windows
+
+### 4. `scripts/verify-dist.mjs` — Same fix
+- `process.exit(1)` → `process.exitCode = 1; return` (two locations)
+- Behavior unchanged — same exit codes
+
+### 5. `scripts/snapshot.mjs` — Already compliant
+- No `process.exit()` calls found; uses `return` from async `main()` — no changes needed
+
+---
+
+## Task 14 — STEP 1: Project cover images — shared ProjectCover component
+
+### Root cause confirmation
+- **Home page case studies** (`ProjectsSection.tsx`): `ProjectCaseStudy` was called without `showCover` (defaults to `false`), so cover images never rendered.
+- **Archive page** (`ProjectsArchivePage.tsx`): explicitly passed `showCover` prop, so covers rendered there.
+- **Schema**: `cover_url` field exists in `ProjectItem` type (`src/types/content.ts:121`) and is parsed in `src/lib/schemas.ts:314`.
+- **safeImageUrl**: accepts URLs under `/storage/v1/object/public/` on the correct Supabase host — portfolio bucket path `portfolio/projects/<id>/<uuid>-name.jpg` is valid.
+
+### Implementation
+
+**1. `src/components/ProjectCover.tsx` — New shared component**
+- 16:9 aspect ratio (`aspect-[16/9]`), 1px border (`border border-line`), sharp corners, `overflow-hidden`
+- Image: `object-cover`, explicit `width=1280` `height=720` for no layout shift
+- `loading="lazy"`, `decoding="async"`
+- Alt text: `"<project title> preview"`
+- Shimmer placeholder while loading (`animate-shimmer`), fade-in on load (opacity transition)
+- Handles already-cached images (checks `img.complete` on mount)
+- OnError: whole box disappears gracefully (returns `null`)
+- `src` validated through `safeImageUrl()` — only renders if valid
+- No data from database in styles/class names
+
+**2. `src/components/sections/ProjectCaseStudy.tsx`**
+- Import and use `ProjectCover` component
+- Place cover in right column between summary and "ENGINEERING IMPLEMENTATION" list
+- Only renders when `showCover` prop is true AND `cover_url` exists
+- Removed old top-mounted cover rendering
+
+**3. `src/components/sections/ProjectsSection.tsx`**
+- Pass `showCover` prop to `ProjectCaseStudy` for featured projects on home page
+
+**4. `src/pages/ProjectsArchivePage.tsx`**
+- Use shared `ProjectCover` component (separate from `ProjectCaseStudy`) after each case study
+- Keeps the same component for consistency
+
+**5. `scripts/check-content.mjs`**
+- Added `hasCover` field to project summaries
+- Output now includes `cover ✓/✗` per project
+
+**6. `src/__tests__/sections.test.tsx` — Comprehensive tests**
+- Renders with valid Supabase storage URL (portfolio bucket path)
+- Does NOT render for: `javascript:`, `data:`, `http:`, another host, path outside `/storage/v1/object/public/`, `null`, empty string
+- OnError removes the box
+- Correct alt text
+- Lazy/decoding/width/height attributes present
+- Same component used on archive page
+
+### Verification
+- All 67 tests pass
+- Lint passes (0 warnings, 0 errors)
 
 ## Final Checklist — Items Not Verified in Sandbox
 

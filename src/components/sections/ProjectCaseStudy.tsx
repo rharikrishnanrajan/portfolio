@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { ExternalLink, FileText, GitBranch, File, FileCode, FileImage, FileSpreadsheet, FileType, FileVideo, FileAudio } from 'lucide-react'
-import { safeImageUrl, safeUrl, safeStorageUrl } from '../../lib/safeUrl'
+import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
+import { ProjectCover } from '../ProjectCover'
 import type { ProjectItem, ProjectFile } from '../../types/content'
 
 export interface ProjectCaseStudyProps {
@@ -51,11 +51,8 @@ function truncateFileName(name: string, maxLength = 36): string {
 }
 
 export function ProjectCaseStudy({ project, index, showCover = false }: ProjectCaseStudyProps) {
-  const [coverFailed, setCoverFailed] = useState(false)
-
   const safeGithub = safeUrl(project.github_url, { allowMailtoTel: false })
   const safeLive = safeUrl(project.live_url, { allowMailtoTel: false })
-  const safeCover = showCover ? safeImageUrl(project.cover_url) : null
 
   const safeFiles = project.files
     .map((file) => {
@@ -65,24 +62,10 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
     .filter((file): file is NonNullable<typeof file> => file !== null)
 
   const hasActions = safeGithub || safeLive || safeFiles.length > 0
+  const hasCover = showCover && project.cover_url
 
   return (
     <article className="py-12 sm:py-16">
-      {safeCover && !coverFailed ? (
-        <div className="mb-8 overflow-hidden border border-line bg-surface aspect-[16/9]">
-          <img
-            src={safeCover}
-            alt={project.title}
-            width={800}
-            height={450}
-            loading="lazy"
-            decoding="async"
-            onError={() => setCoverFailed(true)}
-            className="h-full w-full object-cover"
-          />
-        </div>
-      ) : null}
-
       <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
         <div className="lg:col-span-4 space-y-5">
           <div className="flex items-baseline gap-4">
@@ -161,6 +144,9 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
               {project.summary}
             </p>
           ) : null}
+
+          {/* Project cover image in right column between summary and engineering implementation */}
+          {hasCover && <ProjectCover project={project} />}
 
           {project.bullets.length > 0 ? (
             <div className="border-l-2 border-line pl-5 space-y-3">

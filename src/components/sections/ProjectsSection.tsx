@@ -47,7 +47,7 @@ export function ProjectsSection({ section }: ProjectsSectionProps) {
         {featuredProjects.length > 0 ? (
           <div className="divide-y divide-line">
             {featuredProjects.map((project, idx) => (
-              <ProjectCaseStudy key={project.id} project={project} index={idx} />
+              <ProjectCaseStudy key={project.id} project={project} index={idx} showCover />
             ))}
           </div>
         ) : null}

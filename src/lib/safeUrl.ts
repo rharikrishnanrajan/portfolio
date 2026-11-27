@@ -134,6 +134,8 @@ export function safeHeroTarget(value: string | null | undefined): string | null 
  * - https: only
  * - hostname must equal the hostname of VITE_SUPABASE_URL
  * - normalized pathname must start with /storage/v1/object/public/project-documents/ OR /storage/v1/object/public/portfolio/
+ * - must have a non-empty object path after the allowed prefix (at least one character)
+ * - no empty segments (no "//"), no "." or ".." segments, no encoded traversal (%2e, %2f, %5c), no backslashes
  */
 export function safeStorageUrl(
   value: string | null | undefined,
@@ -152,11 +154,43 @@ export function safeStorageUrl(
     const parsed = new URL(trimmed)
     if (parsed.protocol.toLowerCase() !== 'https:') return null
     if (parsed.hostname.toLowerCase() !== allowedHost) return null
-    const isAllowedPrefix = ALLOWED_STORAGE_PREFIXES.some((prefix) =>
-      parsed.pathname.startsWith(prefix),
-    )
-    if (!isAllowedPrefix) return null
-    if (parsed.pathname.length <= PUBLIC_STORAGE_PREFIX.length) return null
+
+    // Find which allowed prefix matches
+    let matchedPrefix: string | null = null
+    for (const prefix of ALLOWED_STORAGE_PREFIXES) {
+      if (parsed.pathname.startsWith(prefix)) {
+        matchedPrefix = prefix
+        break
+      }
+    }
+    if (!matchedPrefix) return null
+
+    // Extract the object path after the allowed prefix
+    const objectPath = parsed.pathname.slice(matchedPrefix.length)
+    if (!objectPath || objectPath.length === 0) return null // prefix only - no object path
+
+    // Validate object path segments
+    // Decode once to catch encoded traversal attempts
+    let decodedPath: string
+    try {
+      decodedPath = decodeURIComponent(objectPath)
+    } catch {
+      return null // malformed encoding
+    }
+
+    // No backslashes
+    if (decodedPath.includes('\\')) return null
+
+    // No empty segments (//), no . or .. segments
+    const segments = decodedPath.split('/')
+    for (const segment of segments) {
+      if (segment === '' || segment === '.' || segment === '..') return null
+    }
+
+    // No encoded traversal in the original path (%2e, %2f, %5c - case insensitive)
+    const encodedTraversalRe = /%2e|%2f|%5c/i
+    if (encodedTraversalRe.test(objectPath)) return null
+
     return trimmed
   } catch {
     return null

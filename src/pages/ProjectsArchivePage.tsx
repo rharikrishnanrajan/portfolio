@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { SectionHeader } from '../components/SectionHeader'
 import { ProjectCaseStudy } from '../components/sections/ProjectCaseStudy'
+import { ProjectCover } from '../components/ProjectCover'
 import { useContent } from '../context/contentContext'
 
 export function ProjectsArchivePage() {
@@ -41,12 +42,10 @@ export function ProjectsArchivePage() {
         {content.projects.length > 0 ? (
           <div className="divide-y divide-line">
             {content.projects.map((project, idx) => (
-              <ProjectCaseStudy
-                key={project.id}
-                project={project}
-                index={idx}
-                showCover
-              />
+              <>
+                <ProjectCaseStudy key={project.id} project={project} index={idx} />
+                {project.cover_url && <ProjectCover key={`cover-${project.id}`} project={project} />}
+              </>
             ))}
           </div>
         ) : (

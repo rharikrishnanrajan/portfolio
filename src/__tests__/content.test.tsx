@@ -298,4 +298,154 @@ describe('ContentProvider lifecycle', () => {
     unmount()
     expect(controls.removeChannel).toHaveBeenCalledTimes(1)
   })
+
+  describe('ContentUpdatedPill trigger (contentUpdateTrigger)', () => {
+    beforeEach(() => {
+      window.localStorage.clear()
+    })
+
+    afterEach(() => {
+      cleanup()
+      vi.useRealTimers()
+    })
+
+    function PillConsumer() {
+      const { contentUpdateTrigger } = useContent()
+      return <span data-testid="trigger">{contentUpdateTrigger}</span>
+    }
+
+    it('first live load after cache/snapshot hydration shows no pill (trigger stays 0)', async () => {
+      vi.useFakeTimers()
+      writeCachedContent(makeSampleContent(1, 'Cached Brand'))
+
+      let currentVersion = 2
+      const { client } = createMockSupabaseClient(async () => ({
+        ok: true,
+        data: makeSampleContent(currentVersion, `Brand v${currentVersion}`),
+        status: 200,
+      }))
+
+      render(
+        <ContentProvider client={client}>
+          <PillConsumer />
+        </ContentProvider>,
+      )
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10)
+      })
+
+      expect(screen.getByTestId('trigger').textContent).toBe('0')
+    })
+
+    it('polling or visibility refetch with same version does not increment trigger', async () => {
+      vi.useFakeTimers()
+      writeCachedContent(makeSampleContent(1, 'Cached Brand'))
+
+      let currentVersion = 2
+      const { client, controls } = createMockSupabaseClient(async () => ({
+        ok: true,
+        data: makeSampleContent(currentVersion, `Brand v${currentVersion}`),
+        status: 200,
+      }))
+
+      render(
+        <ContentProvider client={client}>
+          <PillConsumer />
+        </ContentProvider>,
+      )
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10)
+      })
+
+      // Initial live load: version 2 > cached version 1, but NO pill on first load after hydration
+      expect(screen.getByTestId('trigger').textContent).toBe('0')
+
+      // Polling refetch with same version (2) - should NOT increment
+      currentVersion = 2
+      act(() => {
+        controls.emitStatus('CHANNEL_ERROR')
+      })
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS + 10)
+      })
+
+      expect(screen.getByTestId('trigger').textContent).toBe('0')
+
+      // Visibility refetch with same version (2) - should NOT increment
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => 'hidden',
+      })
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(VISIBILITY_STALE_MS + 1000)
+      })
+
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => 'visible',
+      })
+      await act(async () => {
+        document.dispatchEvent(new Event('visibilitychange'))
+        await vi.advanceTimersByTimeAsync(10)
+      })
+
+      expect(screen.getByTestId('trigger').textContent).toBe('0')
+    })
+
+    it('higher version on refetch increments trigger', async () => {
+      vi.useFakeTimers()
+      writeCachedContent(makeSampleContent(1, 'Cached Brand'))
+
+      let currentVersion = 2
+      const { client, controls } = createMockSupabaseClient(async () => ({
+        ok: true,
+        data: makeSampleContent(currentVersion, `Brand v${currentVersion}`),
+        status: 200,
+      }))
+
+      render(
+        <ContentProvider client={client}>
+          <PillConsumer />
+        </ContentProvider>,
+      )
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10)
+      })
+
+      // Initial live load: version 2 > cached version 1, but NO pill on first load after hydration
+      expect(screen.getByTestId('trigger').textContent).toBe('0')
+
+      // Realtime update with higher version (3) - should increment
+      currentVersion = 3
+      act(() => {
+        controls.emitUpdate(3)
+      })
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2100)
+      })
+
+      expect(screen.getByTestId('trigger').textContent).toBe('1')
+
+      // Another realtime update with even higher version (5) - should increment again
+      currentVersion = 5
+      act(() => {
+        controls.emitUpdate(5)
+      })
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2100)
+      })
+
+      expect(screen.getByTestId('trigger').textContent).toBe('2')
+    })
+  })
 })
