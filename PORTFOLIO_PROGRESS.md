@@ -1,6 +1,21 @@
 # Portfolio Build — Progress Log
 
-> Last updated: 2026-11-28 (FINAL POLISH F1–F10)
+> Last updated: 2026-11-28 (Spiral 3D Scroll + Parallax S1–S10)
+
+---
+
+## SPIRAL SCROLL progress
+
+- [x] S1: Config and pure math (`src/lib/spiral.ts`)
+- [ ] S2: Engine, hook, wrapper, and hash navigation safety (`src/lib/spiralEngine.ts`, `src/hooks/useSpiral.ts`, `src/components/SpiralBlock.tsx`, `src/lib/scroll.ts`)
+- [ ] S3: Apply to blocks and cards (SectionHeader, About, Skills, Projects, ProjectCover, Education, Certifications, Publications, Contact, Footer)
+- [ ] S4: Parallax layers (`src/components/Hero.tsx`, `src/components/ParallaxOrb.tsx`)
+- [ ] S5: Spiral background (`src/components/SpiralBackground.tsx`, `src/App.tsx`)
+- [ ] S6: Hover tilt (`src/hooks/useHoverTilt.ts`, `src/components/ProjectCover.tsx`, `src/components/sections/SkillsSection.tsx`, `src/components/sections/AboutSection.tsx`)
+- [ ] S7: CSS (`src/index.css`)
+- [ ] S8: Motion switch (`src/components/Footer.tsx`, `src/hooks/useMotionPreference.ts`)
+- [ ] S9: Tests (`src/__tests__/spiral.test.ts`)
+- [ ] S10: Quality gates, README, and PORTFOLIO_PROGRESS.md
 
 ---
 

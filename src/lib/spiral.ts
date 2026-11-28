@@ -1,257 +1,232 @@
 /**
- * spiral.ts (F6) — Self-contained 3D scroll spiral engine.
+ * spiral.ts (S1) — Configuration and pure math for the 3D spiral scroll & parallax system.
  *
- * Elements opt in with:
- *   data-spiral="block" | "card" | "layer"
- *   data-depth="0.15"   (optional, for parallax layers)
- *
- * Safety gates — does nothing (all elements visible) when:
- *   - prefers-reduced-motion: reduce
- *   - html[data-motion="reduced"]
- *   - navigator.connection.saveData === true
- *   - viewport width < 768 px
- *   - IntersectionObserver or requestAnimationFrame unavailable
- *   - element is inside or is #contact form, navbar, drawer dialog
- *
- * Transform applied to inner wrappers only (never to <section id="…">).
- * At progress e >= 0.999 the inline transform is set to "none" and
- * will-change is removed so settled text is crisp.
+ * All functions here are pure, deterministic, and DOM-free so they can be unit-tested
+ * directly without a browser environment.
  */
 
-export interface SpiralEntry {
-  el: HTMLElement
-  dir: 1 | -1
-  depth: number
-  kind: 'block' | 'card' | 'layer'
-  settled: boolean
+export interface SpiralConfig {
+  /** CSS perspective distance in px. */
+  perspective: number
+  /** Maximum Y-axis rotation on entry in degrees. */
+  entryRotateY: number
+  /** Maximum X-axis rotation on entry in degrees. */
+  entryRotateX: number
+  /** Z-axis translation offset on entry in px (negative = further back). */
+  entryTranslateZ: number
+  /** Horizontal translation offset on entry in px (multiplied by direction +1/-1). */
+  entryTranslateX: number
+  /** Vertical translation offset on entry in px. */
+  entryTranslateY: number
+  /** Starting scale on entry (interpolates up to 1). */
+  entryScaleFrom: number
+  /** Maximum Y-axis rotation on exit above viewport in degrees. */
+  exitRotateY: number
+  /** Minimum opacity on exit above viewport. */
+  exitOpacityMin: number
+  /** Viewport fraction where entry begins (1.0 = element top at viewport bottom). */
+  entryStart: number
+  /** Viewport fraction where entry settles (0.55 = element top at 55% of viewport height). */
+  entryEnd: number
+  /** Viewport fraction where exit tilt begins as element leaves the top. */
+  exitStart: number
+  /** Scroll smoothing lerp factor (0..1, higher = snappier). */
+  lerp: number
+  /** Minimum viewport width (px) required to enable 3D spiral motion. */
+  minViewportWidth: number
+  /** Maximum parallax translation in px. */
+  parallaxMaxPx: number
+  /** Maximum hover tilt in degrees. */
+  tiltMaxDeg: number
+  /** Background spiral rotation per px of smoothed scroll (degrees). */
+  backgroundRotatePerPx: number
+  /** Maximum additional scale applied to background spiral over full page scroll. */
+  backgroundScaleMax: number
 }
 
-const ENTRY_PERSPECTIVE = 1200
-const ENTRY_X = 40
-const ENTRY_Y = 60
-const ENTRY_Z = -120
-const ENTRY_ROT_Y = -18
-const ENTRY_ROT_X = 10
-const ENTRY_SCALE_START = 0.94
-const LERP_FACTOR = 0.12
-const CONVERGE_THRESHOLD = 0.5 // px
-
-const EXCLUDED_SELECTORS = [
-  '[data-no-spiral]',
-  '#contact',
-  'nav',
-  'dialog',
-  'input',
-  'textarea',
-  'select',
-]
-
-function motionEnabled(): boolean {
-  if (typeof window === 'undefined') return false
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
-  if (document.documentElement.getAttribute('data-motion') === 'reduced') return false
-  if ('connection' in navigator) {
-    const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection
-    if (conn?.saveData) return false
-  }
-  if (window.innerWidth < 768) return false
-  if (typeof IntersectionObserver === 'undefined') return false
-  if (typeof requestAnimationFrame === 'undefined') return false
-  return true
+/**
+ * Tuneable configuration for the 3D spiral scroll, parallax, hover tilt, and background spiral.
+ */
+export const SPIRAL_CONFIG: SpiralConfig = {
+  perspective: 1200,
+  entryRotateY: 18,
+  entryRotateX: 10,
+  entryTranslateZ: -120,
+  entryTranslateX: 40,
+  entryTranslateY: 60,
+  entryScaleFrom: 0.94,
+  exitRotateY: 6,
+  exitOpacityMin: 0.7,
+  entryStart: 1.0,
+  entryEnd: 0.55,
+  exitStart: 0.2,
+  lerp: 0.12,
+  minViewportWidth: 768,
+  parallaxMaxPx: 120,
+  tiltMaxDeg: 6,
+  backgroundRotatePerPx: 0.04,
+  backgroundScaleMax: 0.15,
 }
 
-function isExcluded(el: HTMLElement): boolean {
-  return EXCLUDED_SELECTORS.some((sel) => {
-    try {
-      return el.closest(sel) !== null
-    } catch {
-      return false
-    }
-  })
+export interface SpiralTransformValues {
+  tx: number
+  ty: number
+  tz: number
+  rx: number
+  ry: number
+  scale: number
+  opacity: number
+  e: number
+  exitAmount: number
 }
 
-function easeInOut(t: number): number {
-  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+/** Clamps a number to [min, max]. Non-finite inputs return min. */
+export function clamp(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return min
+  if (value <= min) return min
+  if (value >= max) return max
+  return value
 }
 
-function getProgress(el: HTMLElement): number {
-  const rect = el.getBoundingClientRect()
-  const vh = window.innerHeight
-  // e = 0 when top of el is at bottom of viewport, e = 1 when top is at 40% vh
-  const target = vh * 0.4
-  const raw = (vh - rect.top) / (vh - target)
-  return Math.max(0, Math.min(1, raw))
+/** Monotonic cubic ease-out curve on [0, 1]. */
+export function easeOutCubic(t: number): number {
+  const c = clamp(t, 0, 1)
+  return 1 - Math.pow(1 - c, 3)
 }
 
-class SpiralEngine {
-  private entries: SpiralEntry[] = []
-  private observer: IntersectionObserver | null = null
-  private visible = new Set<SpiralEntry>()
-  private rafId: number | null = null
-  private rawScrollY = 0
-  private smoothScrollY = 0
-  private scrollListenerAttached = false
+/**
+ * Computes eased entry progress `e` in [0, 1] for an element whose top is `top` px
+ * from the top of a viewport of height `vh` px.
+ */
+export function entryProgress(top: number, vh: number): number {
+  if (!Number.isFinite(vh) || vh <= 0) return 1
+  if (!Number.isFinite(top)) return 1
+  const span = vh * (SPIRAL_CONFIG.entryStart - SPIRAL_CONFIG.entryEnd)
+  if (span <= 0) return 1
+  const raw = clamp((vh * SPIRAL_CONFIG.entryStart - top) / span, 0, 1)
+  return easeOutCubic(raw)
+}
 
-  init() {
-    if (!motionEnabled()) {
-      this.showAll()
-      return
-    }
+/**
+ * Computes 3D spiral transform components and opacity for entry progress `e` in [0, 1],
+ * alternating direction `dir` (+1 or -1), and optional exit amount in [0, 1].
+ */
+export function computeSpiral(
+  e: number,
+  dir: 1 | -1,
+  exitAmount = 0,
+): SpiralTransformValues {
+  const ce = clamp(e, 0, 1)
+  const cExit = clamp(exitAmount, 0, 1)
 
-    this.observer = new IntersectionObserver(
-      (records) => {
-        for (const rec of records) {
-          const entry = this.entries.find((e) => e.el === rec.target)
-          if (!entry) continue
-          if (rec.isIntersecting) {
-            this.visible.add(entry)
-          } else {
-            this.visible.delete(entry)
-          }
-        }
-        this.scheduleLoop()
-      },
-      { rootMargin: '20% 0px 20% 0px', threshold: 0 },
-    )
-
-    this.rawScrollY = window.scrollY
-    this.smoothScrollY = window.scrollY
-
-    if (!this.scrollListenerAttached) {
-      window.addEventListener('scroll', this.onScroll, { passive: true })
-      this.scrollListenerAttached = true
-    }
-
-    this.observe()
-    this.scheduleLoop()
-  }
-
-  register(el: HTMLElement, dir: 1 | -1, depth: number, kind: 'block' | 'card' | 'layer') {
-    if (isExcluded(el)) {
-      el.style.opacity = '1'
-      el.style.transform = 'none'
-      return
-    }
-    if (this.entries.find((e) => e.el === el)) return
-    const entry: SpiralEntry = { el, dir, depth, kind, settled: false }
-    this.entries.push(entry)
-    if (!motionEnabled()) {
-      el.style.opacity = '1'
-      el.style.transform = 'none'
-      entry.settled = true
-      return
-    }
-    this.observer?.observe(el)
-  }
-
-  unregister(el: HTMLElement) {
-    this.observer?.unobserve(el)
-    const idx = this.entries.findIndex((e) => e.el === el)
-    if (idx !== -1) {
-      const [entry] = this.entries.splice(idx, 1)
-      this.visible.delete(entry)
-    }
-  }
-
-  private stopLoop() {
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId)
-      this.rafId = null
-    }
-  }
-
-  destroy() {
-    this.stopLoop()
-    this.observer?.disconnect()
-    this.observer = null
-    if (this.scrollListenerAttached) {
-      window.removeEventListener('scroll', this.onScroll)
-      this.scrollListenerAttached = false
-    }
-    this.entries = []
-    this.visible.clear()
-  }
-
-  private observe() {
-    for (const entry of this.entries) {
-      this.observer?.observe(entry.el)
-    }
-  }
-
-  private showAll() {
-    for (const entry of this.entries) {
-      entry.el.style.opacity = '1'
-      entry.el.style.transform = 'none'
-      entry.settled = true
-    }
-  }
-
-  private onScroll = () => {
-    this.rawScrollY = window.scrollY
-    this.scheduleLoop()
-  }
-
-  private scheduleLoop() {
-    if (this.rafId === null) {
-      this.rafId = requestAnimationFrame(this.loop)
-    }
-  }
-
-  private loop = () => {
-    this.rafId = null
-
-    const delta = this.rawScrollY - this.smoothScrollY
-    this.smoothScrollY += delta * LERP_FACTOR
-
-    const stillConverging = Math.abs(delta) > CONVERGE_THRESHOLD
-
-    // Read all rects first (batch reads)
-    const updates: { entry: SpiralEntry; e: number }[] = []
-    for (const entry of this.visible) {
-      if (entry.settled) continue
-      const e = getProgress(entry.el)
-      updates.push({ entry, e })
-    }
-
-    // Write all styles (batch writes)
-    for (const { entry, e } of updates) {
-      const { dir, depth, kind } = entry
-      const easedE = easeInOut(e)
-
-      if (kind === 'layer') {
-        // Parallax layer: simple vertical translate3d
-        entry.el.style.transform = `translate3d(0, ${this.smoothScrollY * depth}px, 0)`
-        entry.el.style.opacity = '1'
-        continue
+  if (ce >= 0.999) {
+    if (cExit <= 0) {
+      return {
+        tx: 0,
+        ty: 0,
+        tz: 0,
+        rx: 0,
+        ry: 0,
+        scale: 1,
+        opacity: 1,
+        e: ce,
+        exitAmount: 0,
       }
-
-      if (easedE >= 0.999) {
-        entry.el.style.transform = 'none'
-        entry.el.style.opacity = '1'
-        entry.el.style.willChange = 'auto'
-        entry.el.classList.add('spiral-settled')
-        entry.settled = true
-        continue
-      }
-
-      const inv = 1 - easedE
-      // 3D spiral entry
-      const tx = dir * ENTRY_X * inv
-      const ty = ENTRY_Y * inv
-      const tz = ENTRY_Z * inv
-      const ry = dir * ENTRY_ROT_Y * inv
-      const rx = ENTRY_ROT_X * inv
-      const scale = ENTRY_SCALE_START + (1 - ENTRY_SCALE_START) * easedE
-      entry.el.style.transform = `perspective(${ENTRY_PERSPECTIVE}px) translate3d(${tx}px,${ty}px,${tz}px) rotateY(${ry}deg) rotateX(${rx}deg) scale(${scale})`
-      entry.el.style.opacity = String(easedE)
-      entry.el.style.willChange = 'transform, opacity'
     }
-
-    if (updates.length > 0 || stillConverging) {
-      this.rafId = requestAnimationFrame(this.loop)
+    return {
+      tx: 0,
+      ty: 0,
+      tz: 0,
+      rx: 0,
+      ry: dir * SPIRAL_CONFIG.exitRotateY * cExit,
+      scale: 1,
+      opacity: 1 - (1 - SPIRAL_CONFIG.exitOpacityMin) * cExit,
+      e: ce,
+      exitAmount: cExit,
     }
+  }
+
+  const inv = 1 - ce
+  return {
+    tx: dir * SPIRAL_CONFIG.entryTranslateX * inv,
+    ty: SPIRAL_CONFIG.entryTranslateY * inv,
+    tz: SPIRAL_CONFIG.entryTranslateZ * inv,
+    rx: SPIRAL_CONFIG.entryRotateX * inv,
+    ry: -dir * SPIRAL_CONFIG.entryRotateY * inv,
+    scale: SPIRAL_CONFIG.entryScaleFrom + (1 - SPIRAL_CONFIG.entryScaleFrom) * ce,
+    opacity: ce,
+    e: ce,
+    exitAmount: cExit,
   }
 }
 
-// Singleton engine
-export const spiralEngine = new SpiralEngine()
+/**
+ * Formats computed spiral values into a CSS `transform` string.
+ * Returns `"none"` when settled (`e >= 0.999` and `exitAmount === 0`).
+ */
+export function toTransform(values: SpiralTransformValues): string {
+  if (values.e >= 0.999 && values.exitAmount === 0) {
+    return 'none'
+  }
+  const tx = Number(values.tx.toFixed(2))
+  const ty = Number(values.ty.toFixed(2))
+  const tz = Number(values.tz.toFixed(2))
+  const rx = Number(values.rx.toFixed(2))
+  const ry = Number(values.ry.toFixed(2))
+  const scale = Number(values.scale.toFixed(4))
+  return `perspective(${SPIRAL_CONFIG.perspective}px) translate3d(${tx}px, ${ty}px, ${tz}px) rotateY(${ry}deg) rotateX(${rx}deg) scale(${scale})`
+}
+
+/**
+ * Computes a clamped vertical parallax offset in px for a layer.
+ */
+export function parallaxOffset(
+  elementCenterY: number,
+  viewportCenterY: number,
+  depth: number,
+  maxPx = SPIRAL_CONFIG.parallaxMaxPx,
+): number {
+  if (
+    !Number.isFinite(elementCenterY) ||
+    !Number.isFinite(viewportCenterY) ||
+    !Number.isFinite(depth) ||
+    !Number.isFinite(maxPx)
+  ) {
+    return 0
+  }
+  const limit = Math.abs(maxPx)
+  return clamp((viewportCenterY - elementCenterY) * depth, -limit, limit)
+}
+
+/**
+ * Generates an SVG path string for multi-arm logarithmic spirals
+ * (`r = a * e^(b * theta)`) centred at `(500, 500)` in a `1000x1000` viewBox.
+ */
+export function spiralPath(turns = 2.5, arms = 3, points = 240): string {
+  const safeTurns = Number.isFinite(turns) && turns > 0 ? turns : 2.5
+  const safeArms = Number.isFinite(arms) && arms >= 1 ? Math.floor(arms) : 3
+  const safePoints = Number.isFinite(points) && points >= 2 ? Math.floor(points) : 240
+
+  const a = 8
+  const outerRadius = 700
+  const maxTheta = safeTurns * 2 * Math.PI
+  const b = Math.log(outerRadius / a) / maxTheta
+  const cx = 500
+  const cy = 500
+
+  const segments: string[] = []
+  for (let arm = 0; arm < safeArms; arm++) {
+    const armOffset = (arm * 2 * Math.PI) / safeArms
+    for (let i = 0; i <= safePoints; i++) {
+      const theta = (i / safePoints) * maxTheta
+      const r = a * Math.exp(b * theta)
+      const angle = theta + armOffset
+      const x = cx + r * Math.cos(angle)
+      const y = cy + r * Math.sin(angle)
+      segments.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`)
+    }
+  }
+  return segments.join(' ')
+}
+
+export { spiralEngine } from './spiralEngine'
