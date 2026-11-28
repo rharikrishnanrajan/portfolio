@@ -1,8 +1,16 @@
-import { ExternalLink, FileSpreadsheet, FileText, Image, Presentation } from 'lucide-react'
+import {
+  FaArrowUpRightFromSquare,
+  FaFileExcel,
+  FaFileImage,
+  FaFileLines,
+  FaFilePdf,
+  FaFilePowerpoint,
+  FaFileWord,
+} from 'react-icons/fa6'
 import { Link } from 'react-router-dom'
 import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
 import { useSpiral } from '../../hooks/useSpiral'
-import { GithubMark } from '../GithubMark'
+import { BrandIcon } from '../BrandIcon'
 import { IconButton } from '../IconButton'
 import { ProjectCover } from '../ProjectCover'
 import type { ProjectItem } from '../../types/content'
@@ -18,19 +26,25 @@ const MAX_DOCUMENT_BUTTONS = 3
 function getDocumentIcon(name: string, mimeType?: string) {
   const lowerName = name.toLowerCase()
   const lowerMime = (mimeType ?? '').toLowerCase()
+  if (lowerName.endsWith('.pdf') || lowerMime.includes('pdf')) {
+    return <FaFilePdf className="h-5 w-5" aria-hidden="true" />
+  }
+  if (lowerName.endsWith('.doc') || lowerName.endsWith('.docx') || lowerMime.includes('word')) {
+    return <FaFileWord className="h-5 w-5" aria-hidden="true" />
+  }
   if (lowerName.endsWith('.ppt') || lowerName.endsWith('.pptx') || lowerMime.includes('presentation')) {
-    return <Presentation className="h-5 w-5" aria-hidden="true" />
+    return <FaFilePowerpoint className="h-5 w-5" aria-hidden="true" />
   }
   if (lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx') || lowerMime.includes('spreadsheet')) {
-    return <FileSpreadsheet className="h-5 w-5" aria-hidden="true" />
+    return <FaFileExcel className="h-5 w-5" aria-hidden="true" />
   }
   if (
     /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(lowerName) ||
     lowerMime.startsWith('image/')
   ) {
-    return <Image className="h-5 w-5" aria-hidden="true" />
+    return <FaFileImage className="h-5 w-5" aria-hidden="true" />
   }
-  return <FileText className="h-5 w-5" aria-hidden="true" />
+  return <FaFileLines className="h-5 w-5" aria-hidden="true" />
 }
 
 export function ProjectCaseStudy({ project, index, showCover = false }: ProjectCaseStudyProps) {
@@ -105,7 +119,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
                     href={safeGithub}
                     label={`GitHub repository for ${project.title} (opens in a new tab)`}
                     tip={`GitHub: ${project.title}`}
-                    icon={<GithubMark className="h-5 w-5" />}
+                    icon={<BrandIcon name="github" className="h-5 w-5" />}
                   />
                 ) : null}
                 {visibleFiles.map((file, fileIdx) => {
@@ -136,7 +150,7 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
                     href={safeLive}
                     label={`Live demo of ${project.title} (opens in a new tab)`}
                     tip={`Live demo: ${project.title}`}
-                    icon={<ExternalLink className="h-5 w-5" aria-hidden="true" />}
+                    icon={<FaArrowUpRightFromSquare className="h-4 w-4" aria-hidden="true" />}
                   />
                 ) : null}
               </div>

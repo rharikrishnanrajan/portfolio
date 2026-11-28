@@ -1,4 +1,4 @@
-import { ExternalLink, FileText } from 'lucide-react'
+import { FaArrowUpRightFromSquare, FaFilePdf } from 'react-icons/fa6'
 import { formatDateRange } from '../../lib/dates'
 import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
 import type { CertificationItem } from '../../types/content'
@@ -52,9 +52,9 @@ export function CertificationRow({ certification, index }: CertificationRowProps
             tip={isPdf ? 'Open certificate PDF' : 'Verify credential'}
             icon={
               isPdf ? (
-                <FileText className="h-4 w-4" aria-hidden="true" />
+                <FaFilePdf className="h-4 w-4" aria-hidden="true" />
               ) : (
-                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                <FaArrowUpRightFromSquare className="h-4 w-4" aria-hidden="true" />
               )
             }
           />

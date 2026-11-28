@@ -1,4 +1,5 @@
-import { BookOpen, ExternalLink, FileText } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
+import { FaArrowUpRightFromSquare, FaFilePdf } from 'react-icons/fa6'
 import { useContent } from '../../context/contentContext'
 import { useReveal } from '../../hooks/useReveal'
 import { formatDayMonthYear } from '../../lib/dates'
@@ -102,9 +103,9 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
                       tip={isPdf ? 'Open paper PDF' : 'Open paper link'}
                       icon={
                         isPdf ? (
-                          <FileText className="h-4 w-4" aria-hidden="true" />
+                          <FaFilePdf className="h-4 w-4" aria-hidden="true" />
                         ) : (
-                          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                          <FaArrowUpRightFromSquare className="h-4 w-4" aria-hidden="true" />
                         )
                       }
                     />
