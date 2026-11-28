@@ -48,7 +48,7 @@ export function CertificationsSection({ section }: CertificationsSectionProps) {
         />
 
         {featuredCerts.length > 0 ? (
-          <div className="divide-y divide-line animate-fade-up" style={{ '--reveal-i': 1 }}>
+          <div className="divide-y divide-line">
             {featuredCerts.map((cert, idx) => (
               <CertificationRow key={cert.id} certification={cert} index={idx} />
             ))}

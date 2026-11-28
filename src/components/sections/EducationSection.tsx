@@ -2,6 +2,7 @@ import { useContent } from '../../context/contentContext'
 import { useReveal } from '../../hooks/useReveal'
 import type { SectionItem } from '../../types/content'
 import { SectionHeader } from '../SectionHeader'
+import { SpiralBlock } from '../SpiralBlock'
 
 export interface EducationSectionProps {
   section: SectionItem
@@ -36,12 +37,13 @@ export function EducationSection({ section }: EducationSectionProps) {
         />
 
         {content.education.length > 0 ? (
-          <div className="divide-y border-b border-line animate-fade-up" style={{ '--reveal-i': 0 }}>
+          <div className="divide-y border-b border-line">
             {content.education.map((edu, idx) => (
-              <article
+              <SpiralBlock
                 key={edu.id}
-                className="py-8 grid gap-4 md:grid-cols-12 md:items-center row-interactive animate-fade-up"
-                style={{ '--reveal-i': idx % 3 }}
+                as="article"
+                kind="block"
+                className="py-8 grid gap-4 md:grid-cols-12 md:items-center row-interactive"
               >
                 <div className="md:col-span-3 font-mono text-xs uppercase tracking-[0.2em] text-muted tabular-nums">
                   {String(idx + 1).padStart(2, '0')} // DEGREE
@@ -69,7 +71,7 @@ export function EducationSection({ section }: EducationSectionProps) {
                     </span>
                   ) : null}
                 </div>
-              </article>
+              </SpiralBlock>
             ))}
           </div>
         ) : null}

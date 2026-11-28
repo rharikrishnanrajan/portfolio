@@ -19,6 +19,7 @@ import { safeUrl } from '../../lib/safeUrl'
 import type { SectionItem } from '../../types/content'
 import { SectionHeader } from '../SectionHeader'
 import { BrandIcon } from '../BrandIcon'
+import { SpiralBlock } from '../SpiralBlock'
 
 export interface ContactSectionProps {
   section: SectionItem
@@ -162,8 +163,8 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
     >
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
-          <div className="lg:col-span-5 space-y-8">
-            <div className="reveal-header mb-8">
+          <SpiralBlock kind="block" className="lg:col-span-5 space-y-8">
+            <div className="mb-8">
               <SectionHeader
                 eyebrow={section.eyebrow || 'CONNECT'}
                 prefixNumber={displayNumber}
@@ -171,13 +172,13 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
                 titleId={titleId}
               />
               {section.subtitle ? (
-                <p className="mt-5 text-base text-muted leading-relaxed animate-fade-up" style={{ '--reveal-i': 2 }}>
+                <p className="mt-5 text-base text-muted leading-relaxed">
                   {section.subtitle}
                 </p>
               ) : null}
             </div>
 
-            <div className="border-t border-b border-line divide-y animate-fade-up" style={{ '--reveal-i': 3 }}>
+            <div className="border-t border-b border-line divide-y">
               {profile?.email && safeEmailHref ? (
                 <a
                   href={safeEmailHref}
@@ -245,7 +246,7 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
                 </a>
               ) : null}
             </div>
-          </div>
+          </SpiralBlock>
 
           <div className="lg:col-span-7 animate-fade-up" style={{ '--reveal-i': 5 }}>
             {sentSuccess ? (

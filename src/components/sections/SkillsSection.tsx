@@ -2,6 +2,7 @@ import { useContent } from '../../context/contentContext'
 import { useReveal } from '../../hooks/useReveal'
 import type { SectionItem } from '../../types/content'
 import { SectionHeader } from '../SectionHeader'
+import { SpiralBlock } from '../SpiralBlock'
 
 export interface SkillsSectionProps {
   section: SectionItem
@@ -37,10 +38,11 @@ export function SkillsSection({ section }: SkillsSectionProps) {
         {content.skill_domains.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-line border border-line">
             {content.skill_domains.map((domain, idx) => (
-              <article
+              <SpiralBlock
                 key={domain.id}
-                className="bg-surface p-7 sm:p-8 flex flex-col justify-between card-interactive animate-fade-up"
-                style={{ '--reveal-i': idx % 3 }}
+                as="article"
+                kind="card"
+                className="bg-surface p-7 sm:p-8 flex flex-col justify-between card-interactive"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 pb-4 border-b border-line">
@@ -77,7 +79,7 @@ export function SkillsSection({ section }: SkillsSectionProps) {
                     </p>
                   </div>
                 ) : null}
-              </article>
+              </SpiralBlock>
             ))}
           </div>
         ) : null}

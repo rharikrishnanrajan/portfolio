@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useSpiral } from '../hooks/useSpiral'
 
 export interface SectionHeaderProps {
   eyebrow?: string | null
@@ -22,8 +23,13 @@ export function SectionHeader({
   showDivider = false,
 }: SectionHeaderProps) {
   const HeadingTag = as
+  const spiralRef = useSpiral<HTMLDivElement>({ kind: 'block' })
   return (
-    <div className={showDivider ? 'pb-8 border-b border-line' : undefined}>
+    <div
+      ref={spiralRef}
+      data-spiral="block"
+      className={showDivider ? 'pb-8 border-b border-line' : undefined}
+    >
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div>
           {eyebrow ? (

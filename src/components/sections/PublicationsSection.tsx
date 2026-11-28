@@ -7,6 +7,7 @@ import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
 import type { SectionItem } from '../../types/content'
 import { IconButton } from '../IconButton'
 import { SectionHeader } from '../SectionHeader'
+import { SpiralBlock } from '../SpiralBlock'
 
 export interface PublicationsSectionProps {
   section: SectionItem
@@ -49,7 +50,7 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
           }
         />
 
-        <div className="divide-y border-b border-line animate-fade-up" style={{ '--reveal-i': 1 }}>
+        <div className="divide-y border-b border-line">
           {content.publications.map((pub, idx) => {
             const publishedDate = formatDayMonthYear(pub.published_on)
             const safePubUrl = safeUrl(pub.url, { allowMailtoTel: false })
@@ -59,8 +60,10 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
               : `Open paper for ${pub.title} (opens in a new tab)`
 
             return (
-              <article
+              <SpiralBlock
                 key={pub.id}
+                as="article"
+                kind="block"
                 className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-start row-interactive"
               >
                 <div className="md:col-span-2 font-mono text-xs uppercase tracking-[0.2em] text-muted pt-1 tabular-nums">
@@ -111,7 +114,7 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
                     />
                   ) : null}
                 </div>
-              </article>
+              </SpiralBlock>
             )
           })}
         </div>

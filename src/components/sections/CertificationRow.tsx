@@ -3,6 +3,7 @@ import { formatDateRange } from '../../lib/dates'
 import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
 import type { CertificationItem } from '../../types/content'
 import { IconButton } from '../IconButton'
+import { SpiralBlock } from '../SpiralBlock'
 
 export interface CertificationRowProps {
   certification: CertificationItem
@@ -24,7 +25,7 @@ export function CertificationRow({ certification, index }: CertificationRowProps
     : `Verify credential for ${certification.title} (opens in a new tab)`
 
   return (
-    <article className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-center row-interactive">
+    <SpiralBlock as="article" kind="block" className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-center row-interactive">
       <div className="md:col-span-2 font-mono text-xs uppercase tracking-[0.2em] text-muted tabular-nums">
         {String(index + 1).padStart(2, '0')} // CERT
       </div>
@@ -60,6 +61,6 @@ export function CertificationRow({ certification, index }: CertificationRowProps
           />
         ) : null}
       </div>
-    </article>
+    </SpiralBlock>
   )
 }
