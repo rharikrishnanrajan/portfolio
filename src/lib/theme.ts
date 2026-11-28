@@ -1,4 +1,4 @@
-import type { SiteThemeJson, ThemeMode, ThemePalette } from '../types/content'
+import type { NavbarThemePalette, SiteThemeJson, ThemeMode, ThemePalette } from '../types/content'
 import { safeRgbString } from './color'
 
 export const THEME_STORAGE_KEY = 'portfolio:theme'
@@ -198,6 +198,32 @@ export function applyTheme(theme: SiteThemeJson | undefined, modeOverride?: Them
   for (const key of PALETTE_KEYS) {
     root.style.setProperty(`--${key}`, palette[key])
   }
+
+  const navDefaults: NavbarThemePalette = {
+    bg: palette.bg,
+    border: palette.border,
+    text: palette.text,
+    muted: palette.muted,
+    pill_bg: palette.surface,
+    active_bg: palette.accent,
+    active_text: palette.text,
+  }
+  const rawNav = mode === 'light' ? theme?.navbar?.light : theme?.navbar?.dark
+  const navStyle = theme?.navbar?.style
+  root.setAttribute(
+    'data-nav-style',
+    navStyle === 'solid' || navStyle === 'transparent' ? navStyle : 'glass',
+  )
+  root.style.setProperty('--nav-bg', safeRgbString(rawNav?.bg, navDefaults.bg))
+  root.style.setProperty('--nav-border', safeRgbString(rawNav?.border, navDefaults.border))
+  root.style.setProperty('--nav-text', safeRgbString(rawNav?.text, navDefaults.text))
+  root.style.setProperty('--nav-muted', safeRgbString(rawNav?.muted, navDefaults.muted))
+  root.style.setProperty('--nav-pill-bg', safeRgbString(rawNav?.pill_bg, navDefaults.pill_bg))
+  root.style.setProperty('--nav-active-bg', safeRgbString(rawNav?.active_bg, navDefaults.active_bg))
+  root.style.setProperty(
+    '--nav-active-text',
+    safeRgbString(rawNav?.active_text, navDefaults.active_text),
+  )
 
   const headingName = resolveHeadingFontName(theme?.fonts?.heading)
   const monoName = resolveMonoFontName(theme?.fonts?.mono)

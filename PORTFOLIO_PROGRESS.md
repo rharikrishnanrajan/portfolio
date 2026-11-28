@@ -574,3 +574,35 @@ powershell -ExecutionPolicy Bypass -File scripts\security-smoke.ps1 -SiteUrl "ht
 npm run lint   # → 0 warnings, 0 errors (oxlint, 60 files)
 # tsc / vitest / build: not run (sandbox constraints)
 ```
+
+---
+
+## Navigation Bar Theme Support (Admin Theme Editor)
+
+Added support for customizing the public navigation bar theme from the Admin Theme Editor (`site_settings.theme.navbar`):
+
+### Admin configuration (`D:\portfolio\admin\src\pages\Theme.tsx`)
+
+- **Navbar Surface Style** (`theme.navbar.style`):
+  - `glass` — Translucent bar with backdrop blur (`bg-nav-bg/85 backdrop-blur-md`, `bg-nav-bg/95` on scroll)
+  - `solid` — Opaque bar (`bg-nav-bg`)
+  - `transparent` — Transparent header at top of page, transitioning to `bg-nav-bg/95 backdrop-blur-md` on scroll
+- **Per-mode color tokens** (`theme.navbar.dark` and `theme.navbar.light`, space-separated RGB strings):
+  - `bg` — Bar background (`--nav-bg`)
+  - `border` — Bar & pill border (`--nav-border`)
+  - `text` — Brand name & logo text (`--nav-text`)
+  - `muted` — Inactive nav link & icon button text (`--nav-muted`)
+  - `pill_bg` — Nav pill & icon button surface (`--nav-pill-bg`)
+  - `active_bg` — Active nav indicator background (`--nav-active-bg`)
+  - `active_text` — Active nav link text (`--nav-active-text`)
+- Includes **Sync with palette** (copies active dark/light palette tokens into the navbar tokens) and a live navbar preview in `LivePreview`.
+
+### Public site integration (`D:\portfolio\portfolio-site`)
+
+| File | Change |
+|------|--------|
+| `src/types/content.ts` | Added `NavbarThemePalette`, `NavbarThemeStyle`, `NavbarThemeConfig`, and `SiteThemeJson.navbar` |
+| `src/lib/schemas.ts` | Added `navbarThemeSchema` to `themeSchema` so `theme.navbar` is preserved when parsing `site_settings` |
+| `src/lib/theme.ts` | Updated `applyTheme()` to validate `theme.navbar` RGB values with `safeRgbString()`, set `--nav-*` CSS variables, and set `data-nav-style` on `<html>` |
+| `src/index.css` | Added `--nav-*` defaults in `:root` and `--color-nav-*` tokens in `@theme inline` |
+| `src/components/Navbar.tsx` | Applied `navStyle` (`glass` / `solid` / `transparent`) and `nav-*` color tokens to the sticky `<header>`, brand, nav pill, active indicator, and icon buttons |

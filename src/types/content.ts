@@ -44,6 +44,24 @@ export interface ThemePalette {
   accent2: string
 }
 
+export interface NavbarThemePalette {
+  bg: string
+  border: string
+  text: string
+  muted: string
+  pill_bg: string
+  active_bg: string
+  active_text: string
+}
+
+export type NavbarThemeStyle = 'glass' | 'solid' | 'transparent'
+
+export interface NavbarThemeConfig {
+  style?: NavbarThemeStyle
+  dark?: Partial<NavbarThemePalette>
+  light?: Partial<NavbarThemePalette>
+}
+
 export interface SiteThemeJson {
   default_mode: ThemeMode
   fonts: {
@@ -52,6 +70,7 @@ export interface SiteThemeJson {
   }
   dark?: Partial<ThemePalette>
   light?: Partial<ThemePalette>
+  navbar?: NavbarThemeConfig
 }
 
 export interface SiteSettings {

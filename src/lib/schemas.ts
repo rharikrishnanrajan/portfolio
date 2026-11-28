@@ -137,6 +137,28 @@ const partialPaletteSchema = z
   .optional()
   .catch(undefined)
 
+const partialNavbarPaletteSchema = z
+  .object({
+    bg: optString,
+    border: optString,
+    text: optString,
+    muted: optString,
+    pill_bg: optString,
+    active_bg: optString,
+    active_text: optString,
+  })
+  .optional()
+  .catch(undefined)
+
+const navbarThemeSchema = z
+  .object({
+    style: z.enum(['glass', 'solid', 'transparent']).optional().catch(undefined),
+    dark: partialNavbarPaletteSchema,
+    light: partialNavbarPaletteSchema,
+  })
+  .optional()
+  .catch(undefined)
+
 const themeSchema = z
   .object({
     default_mode: z
@@ -153,6 +175,7 @@ const themeSchema = z
       .transform((v) => v ?? { heading: 'Inter Variable', mono: 'JetBrains Mono Variable' }),
     dark: partialPaletteSchema,
     light: partialPaletteSchema,
+    navbar: navbarThemeSchema,
   })
   .optional()
   .catch({

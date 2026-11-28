@@ -184,6 +184,20 @@ export function Navbar() {
 
   const closeDrawer = () => setDrawerOpen(false)
   const ctaLabel = content.settings.nav_cta_label || "Let's Connect"
+  const navStyle = content.settings.theme?.navbar?.style ?? 'glass'
+
+  const headerStyleClass =
+    navStyle === 'transparent'
+      ? scrolled
+        ? 'bg-nav-bg/95 backdrop-blur-md border-nav-border/60 shadow-[0_4px_24px_rgb(var(--nav-border)/0.3)]'
+        : 'bg-transparent border-transparent'
+      : navStyle === 'solid'
+        ? scrolled
+          ? 'bg-nav-bg border-nav-border shadow-[0_4px_24px_rgb(var(--nav-border)/0.3)]'
+          : 'bg-nav-bg border-nav-border'
+        : scrolled
+          ? 'bg-nav-bg/95 backdrop-blur-md border-nav-border/60 shadow-[0_4px_24px_rgb(var(--nav-border)/0.3)]'
+          : 'bg-nav-bg/85 backdrop-blur-md border-nav-border'
 
   // Handle nav link clicks with smooth scroll + focus (A3)
   const handleNavClick = (slug: string, e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -195,11 +209,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b border-line transition-all duration-300 ease-out ${
-        scrolled
-          ? 'bg-bg/95 backdrop-blur-md border-line/60 shadow-[0_4px_24px_rgb(var(--border)/0.3)]'
-          : 'bg-bg/85 backdrop-blur-md'
-      }`}
+      className={`sticky top-0 z-40 border-b transition-all duration-300 ease-out ${headerStyleClass}`}
     >
       <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between gap-4">
         <Link
@@ -211,10 +221,10 @@ export function Navbar() {
             }
           }}
         >
-          <span className="inline-flex h-9 w-9 items-center justify-center border border-line bg-surface font-mono text-xs font-bold tracking-wider text-ink transition-colors group-hover:border-accent">
+          <span className="inline-flex h-9 w-9 items-center justify-center border border-nav-border bg-nav-pill font-mono text-xs font-bold tracking-wider text-nav-text transition-colors group-hover:border-accent">
             {content.settings.logo_text}
           </span>
-          <span className="font-bold tracking-tight text-sm sm:text-base text-ink">
+          <span className="font-bold tracking-tight text-sm sm:text-base text-nav-text">
             {content.settings.brand_name}
           </span>
         </Link>
@@ -228,7 +238,7 @@ export function Navbar() {
             {/* Sliding active indicator (A5) */}
             {isHome && activeSlug && activeLinkRect && (
               <div
-                className="absolute top-1.5 left-0 rounded-full bg-accent/15 transition-transform duration-300 ease-out pointer-events-none"
+                className="absolute top-1.5 left-0 rounded-full bg-nav-active-bg/15 transition-transform duration-300 ease-out pointer-events-none"
                 style={{
                   transform: `translateX(${activeLinkRect.x}px)`,
                   width: activeLinkRect.width,
@@ -238,7 +248,7 @@ export function Navbar() {
               />
             )}
 
-            <div className="relative flex items-center rounded-full border border-line bg-surface/70 px-3 py-1.5 gap-1">
+            <div className="relative flex items-center rounded-full border border-nav-border bg-nav-pill/70 px-3 py-1.5 gap-1">
               {navSections.map((section) => {
                 const label = section.nav_label || section.title || section.slug
                 const isActive = isHome && activeSlug === section.slug
@@ -253,8 +263,8 @@ export function Navbar() {
                     ref={isActive ? activeLinkRef : undefined}
                     className={`relative px-3.5 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] transition-colors z-10 ${
                       isActive
-                        ? 'text-ink font-semibold'
-                        : 'text-muted hover:text-ink'
+                        ? 'text-nav-active-text font-semibold'
+                        : 'text-nav-muted hover:text-nav-text'
                     }`}
                   >
                     {label}
@@ -263,7 +273,7 @@ export function Navbar() {
                   <Link
                     key={section.id}
                     to={href}
-                    className="px-3.5 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-ink transition-colors"
+                    className="px-3.5 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] text-nav-muted hover:text-nav-text transition-colors"
                   >
                     {label}
                   </Link>
@@ -277,7 +287,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={toggleThemeMode}
-            className="h-10 w-10 border border-line bg-surface flex items-center justify-center text-muted hover:text-ink hover:border-accent transition-colors cursor-pointer"
+            className="h-10 w-10 border border-nav-border bg-nav-pill flex items-center justify-center text-nav-muted hover:text-nav-text hover:border-accent transition-colors cursor-pointer"
             aria-label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
             aria-pressed={themeMode === 'light'}
           >

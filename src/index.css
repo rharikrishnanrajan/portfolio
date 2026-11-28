@@ -10,6 +10,13 @@
   --muted: 148 163 184;
   --accent: 79 126 255;
   --accent2: 199 210 254;
+  --nav-bg: var(--bg);
+  --nav-border: var(--border);
+  --nav-text: var(--text);
+  --nav-muted: var(--muted);
+  --nav-pill-bg: var(--surface);
+  --nav-active-bg: var(--accent);
+  --nav-active-text: var(--text);
   --theme-font-heading: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --theme-font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
   color-scheme: dark;
@@ -54,6 +61,13 @@
   --color-muted: rgb(var(--muted));
   --color-accent: rgb(var(--accent));
   --color-accent2: rgb(var(--accent2));
+  --color-nav-bg: rgb(var(--nav-bg));
+  --color-nav-border: rgb(var(--nav-border));
+  --color-nav-text: rgb(var(--nav-text));
+  --color-nav-muted: rgb(var(--nav-muted));
+  --color-nav-pill: rgb(var(--nav-pill-bg));
+  --color-nav-active-bg: rgb(var(--nav-active-bg));
+  --color-nav-active-text: rgb(var(--nav-active-text));
   --font-sans: var(--theme-font-heading);
   --font-mono: var(--theme-font-mono);
 }
