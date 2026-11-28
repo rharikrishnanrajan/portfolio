@@ -4,6 +4,7 @@ import { vi } from 'vitest'
 // Mock window.matchMedia for jsdom (not implemented by default)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
+  configurable: true,
   value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
@@ -40,6 +41,7 @@ class MockIntersectionObserver {
 
 Object.defineProperty(window, 'IntersectionObserver', {
   writable: true,
+  configurable: true,
   value: MockIntersectionObserver,
 })
 
@@ -52,6 +54,7 @@ class MockResizeObserver {
 
 Object.defineProperty(window, 'ResizeObserver', {
   writable: true,
+  configurable: true,
   value: MockResizeObserver,
 })
 

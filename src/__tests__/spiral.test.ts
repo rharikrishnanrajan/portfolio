@@ -34,7 +34,7 @@ describe('clamp', () => {
   })
   it('returns min for non-finite input', () => {
     expect(clamp(NaN, 0, 1)).toBe(0)
-    expect(clamp(Infinity, 0, 1)).toBe(1)
+    expect(clamp(Infinity, 0, 1)).toBe(0)
   })
 })
 
@@ -243,11 +243,9 @@ describe('motionEnabled', () => {
   })
 
   it('returns false when IntersectionObserver is missing', () => {
-    const original = globalThis.IntersectionObserver
-    // @ts-expect-error intentionally deleting for test
-    delete globalThis.IntersectionObserver
+    vi.stubGlobal('IntersectionObserver', undefined)
     expect(motionEnabled()).toBe(false)
-    globalThis.IntersectionObserver = original
+    vi.unstubAllGlobals()
   })
 
   it('returns false when requestAnimationFrame is missing', () => {

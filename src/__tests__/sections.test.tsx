@@ -423,7 +423,7 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       expect(img.getAttribute('decoding')).toBe('async')
       // Wrapper has correct styling
       const wrapper = img.parentElement
-      expect(wrapper?.className).toContain('aspect-[16/9]')
+      expect(wrapper?.getAttribute('data-variant')).toBe('cropped')
       expect(wrapper?.className).toContain('overflow-hidden')
       expect(wrapper?.className).toContain('border')
       expect(wrapper?.className).toContain('border-line')
