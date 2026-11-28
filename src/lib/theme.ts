@@ -41,19 +41,19 @@ interface FontSpec {
   loader?: () => Promise<unknown>
 }
 
-const HEADING_ALIASES: Record<string, string> = {
+export const HEADING_ALIASES: Record<string, string> = {
   Inter: 'Inter Variable',
   // F5: alias proprietary/system fonts to open-source equivalents
   Georgia: 'Merriweather',
 }
 
-const MONO_ALIASES: Record<string, string> = {
+export const MONO_ALIASES: Record<string, string> = {
   'JetBrains Mono': 'JetBrains Mono Variable',
   // F5: alias Courier New to Source Code Pro (open-source)
   'Courier New': 'Source Code Pro',
 }
 
-const HEADING_FONT_MAP: Record<string, FontSpec> = {
+export const HEADING_FONT_MAP: Record<string, FontSpec> = {
   'Inter Variable': {
     // F5: clean fallback stack — no proprietary named families
     cssFamily: '"Inter Variable", ui-sans-serif, system-ui, sans-serif',
@@ -77,7 +77,7 @@ const HEADING_FONT_MAP: Record<string, FontSpec> = {
   },
 }
 
-const MONO_FONT_MAP: Record<string, FontSpec> = {
+export const MONO_FONT_MAP: Record<string, FontSpec> = {
   'JetBrains Mono Variable': {
     // F5: clean fallback stack — no proprietary named families
     cssFamily: '"JetBrains Mono Variable", ui-monospace, monospace',

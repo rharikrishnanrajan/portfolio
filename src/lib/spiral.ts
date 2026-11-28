@@ -215,6 +215,7 @@ class SpiralEngine {
 
     // Write all styles (batch writes)
     for (const { entry, e } of updates) {
+      const { dir, depth, kind } = entry
       const easedE = easeInOut(e)
 
       if (kind === 'layer') {
@@ -233,7 +234,6 @@ class SpiralEngine {
         continue
       }
 
-      const { dir } = entry
       const inv = 1 - easedE
       // 3D spiral entry
       const tx = dir * ENTRY_X * inv

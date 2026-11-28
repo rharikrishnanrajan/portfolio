@@ -789,6 +789,7 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
             start_date: '2025-01-01',
             end_date: null,
             credential_url: 'https://example.com/certs/aws.pdf',
+            featured: true,
           }}
         />,
       )
@@ -809,6 +810,7 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
             start_date: '2025-02-01',
             end_date: null,
             credential_url: 'https://credly.com/badges/1234',
+            featured: true,
           }}
         />,
       )
@@ -827,6 +829,7 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
             start_date: '2025-02-01',
             end_date: null,
             credential_url: 'javascript:alert(1)',
+            featured: true,
           }}
         />,
       )
