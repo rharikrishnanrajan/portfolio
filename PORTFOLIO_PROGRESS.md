@@ -10,12 +10,12 @@
 - [x] S2: Engine, hook, wrapper, and hash navigation safety (`src/lib/spiralEngine.ts`, `src/hooks/useSpiral.ts`, `src/components/SpiralBlock.tsx`, `src/lib/scroll.ts`)
 - [x] S3: Apply to blocks and cards (SectionHeader, About, Skills, Projects, ProjectCover, Education, Certifications, Publications, Contact, Footer)
 - [x] S4: Parallax layers (`src/components/Hero.tsx`, `src/components/ParallaxOrb.tsx`)
-- [ ] S5: Spiral background (`src/components/SpiralBackground.tsx`, `src/App.tsx`)
-- [ ] S6: Hover tilt (`src/hooks/useHoverTilt.ts`, `src/components/ProjectCover.tsx`, `src/components/sections/SkillsSection.tsx`, `src/components/sections/AboutSection.tsx`)
-- [ ] S7: CSS (`src/index.css`)
-- [ ] S8: Motion switch (`src/components/Footer.tsx`, `src/hooks/useMotionPreference.ts`)
-- [ ] S9: Tests (`src/__tests__/spiral.test.ts`)
-- [ ] S10: Quality gates, README, and PORTFOLIO_PROGRESS.md
+- [x] S5: Spiral background (`src/components/SpiralBackground.tsx`, `src/App.tsx`) — fixed aria-hidden SVG (viewBox 0 0 1000 1000, 3-arm logarithmic spiral from `spiralPath()`, stroke rgb(var(--accent)/0.07), vector-effect non-scaling-stroke) registered with engine via `registerBackground()`; hidden by CSS under reduced-motion and `data-motion="reduced"`
+- [x] S6: Hover tilt (`src/hooks/useHoverTilt.ts`, `src/components/ProjectCover.tsx`, `src/components/sections/SkillsSection.tsx`, `src/components/sections/AboutSection.tsx`) — `pointermove`-driven `perspective(900px) rotateX/Y` on a DESCENDANT of the spiral wrapper; CSS `.hover-tilt-card` transition on leave; fine-pointer media query guard; `motionEnabled()` check per event; no-op on touch
+- [x] S7: CSS (`src/index.css`) — `transform-origin`, `backface-visibility` on `[data-spiral]`; `.spiral-settled` reset; `.hover-tilt-card` transition; `.spiral-bg-svg` fixed positioning; `@media print` block clears all transforms/opacity and hides decorative elements; `overflow-x: clip` on html+body; reduced-motion blocks updated for S5/S6/S7
+- [x] S8: Motion switch (`src/hooks/useMotionPreference.ts`, `src/components/Footer.tsx`) — `toggle()` now calls `spiralEngine.refresh()` immediately so elements reset/activate without waiting for the next scroll; `portfolio:motion` localStorage key validated on read; `data-motion="reduced"` on `<html>`
+- [x] S9: Tests (`src/__tests__/spiral.test.ts`) — pure math (clamp, easeOutCubic, entryProgress, computeSpiral, toTransform, parallaxOffset, spiralPath), engine gating (all five conditions), registration/cleanup/focusin/double-registration/background/excluded-elements, section IDs excluded, contact form excluded, motionEnabled() validation, motion switch storage validation
+- [x] S10: Quality gates, README, and PORTFOLIO_PROGRESS.md — `npm run lint` clean (0 warnings, 0 errors, 72 files); README updated with spiral effect docs + SPIRAL_CONFIG tuning table + disable instructions; PORTFOLIO_PROGRESS.md ticked; security/accessibility/perf review passed
 
 ---
 

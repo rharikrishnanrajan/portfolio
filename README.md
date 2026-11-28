@@ -166,8 +166,47 @@ Requires Node.js **≥ 20.19.0** (or Node 22+). Declared in `package.json` `"eng
 ## Motion Engine, Publications & Certificate Actions
 
 - **Spiral 3D scroll & parallax (`src/lib/spiral.ts`, `src/hooks/useSpiral.ts`)**: Inner wrappers opt in via `data-spiral="block" | "card" | "layer"` with a shared `IntersectionObserver` and single `requestAnimationFrame` loop that stops when settled (`e >= 0.999` removes inline transforms and `will-change`). Disabled automatically for `prefers-reduced-motion: reduce`, `html[data-motion="reduced"]`, `saveData`, and viewports narrower than `768px`, and never applied to `#contact`, `nav`, or `dialog`.
-- **Motion preference switch (`src/hooks/useMotionPreference.ts`)**: Footer button ("Motion: on/off") stores `"on"` or `"off"` under `portfolio:motion` in `localStorage` and toggles `data-motion="reduced"` on `<html>`.
+- **Motion preference switch (`src/hooks/useMotionPreference.ts`)**: Footer button ("Motion: on/off") stores `"on"` or `"off"` under `portfolio:motion` in `localStorage` and toggles `data-motion="reduced"` on `<html>`. Calling `toggle()` also calls `spiralEngine.refresh()` immediately so elements reset/activate without waiting for the next scroll event.
 - **Action buttons (`src/components/IconButton.tsx`, `src/components/BrandIcon.tsx`)**: Icon-only 44×44 px (`min-h-11 min-w-11`) buttons with CSS-only tooltips (`data-tip`), used across project case studies (GitHub, up to 3 storage document buttons with `+N` archive link, live demo), certifications (PDF vs credential verification), and publications (`DD MON YYYY` formatting, `PRESENTED & PUBLISHED` badge, PDF/external link).
+
+---
+
+## Spiral 3D Scroll Effect (S1–S10)
+
+The page uses a scroll-driven inertial 3D spiral entrance, parallax layers, a rotating logarithmic spiral background, and hover tilt — all with no extra dependencies (pure CSS transforms, `requestAnimationFrame`, `IntersectionObserver`, `ResizeObserver`).
+
+### How it works
+
+| Layer | File | Mechanism |
+|---|---|---|
+| Config & pure math | `src/lib/spiral.ts` | `SPIRAL_CONFIG`, `computeSpiral`, `toTransform`, `parallaxOffset`, `spiralPath` |
+| Engine | `src/lib/spiralEngine.ts` | Single rAF loop, one passive scroll listener, one `IntersectionObserver` (rootMargin 20%), one `ResizeObserver`. Loop stops at convergence (< 0.1 px diff). Settled elements get inline styles removed. |
+| React hook | `src/hooks/useSpiral.ts` | Registers element with the engine and unregisters on unmount |
+| Wrapper component | `src/components/SpiralBlock.tsx` | Drop-in `<div>` / `<article>` etc. with `data-spiral` attribute |
+| Parallax layers | `src/components/ParallaxOrb.tsx` | Blurred accent orbs; `kind="layer"` in engine |
+| Spiral background | `src/components/SpiralBackground.tsx` | Fixed aria-hidden SVG driven by the same engine loop via `registerBackground()`. Uses `spiralPath()` (3 arms, 240 pts/arm, `r = a·eᵇᶿ`). |
+| Hover tilt | `src/hooks/useHoverTilt.ts` | `pointermove`-driven `perspective(900px) rotateX/Y` on a **descendant** of the spiral wrapper; CSS transition on `pointerleave`; fine-pointer only |
+| Motion switch | `src/hooks/useMotionPreference.ts` | Footer toggle; `localStorage "portfolio:motion"` → `data-motion="reduced"` on `<html>` + `spiralEngine.refresh()` |
+
+### SPIRAL_CONFIG tuning
+
+Edit `src/lib/spiral.ts` → `SPIRAL_CONFIG`:
+
+| Want subtler | Want stronger |
+|---|---|
+| `entryRotateY`: 18 → 8 | → 28 |
+| `entryRotateX`: 10 → 4 | → 18 |
+| `entryTranslateZ`: -120 → -40 | → -200 |
+| `entryTranslateX`: 40 → 16 | → 70 |
+| `entryTranslateY`: 60 → 24 | → 100 |
+| `entryScaleFrom`: 0.94 → 0.98 | → 0.88 |
+| `lerp`: 0.12 → 0.2 (snappier) | → 0.06 (more inertia) |
+| `tiltMaxDeg`: 6 → 2 | → 10 |
+| `backgroundRotatePerPx`: 0.04 → 0.01 | → 0.08 |
+
+### How to disable it entirely
+
+Set `data-motion="reduced"` on `<html>`, or click **Motion: off** in the footer. The CSS blocks under `@media (prefers-reduced-motion: reduce)` and `html[data-motion="reduced"]` immediately clear all transforms and hide the spiral background.
 
 ---
 
