@@ -1,5 +1,6 @@
 import { useContent } from '../../context/contentContext'
 import { useReveal } from '../../hooks/useReveal'
+import { useHoverTilt } from '../../hooks/useHoverTilt'
 import { parseAboutContent } from '../../lib/schemas'
 import type { SectionItem } from '../../types/content'
 import { SpiralBlock } from '../SpiralBlock'
@@ -13,6 +14,8 @@ export function AboutSection({ section }: AboutSectionProps) {
   const { ref, isVisible } = useReveal<HTMLElement>()
   const aboutContent = parseAboutContent(section.content)
   const titleId = `section-title-${section.id}`
+  // S6: hover tilt on the overview "at a glance" card
+  const overviewTiltRef = useHoverTilt<HTMLDivElement>()
 
   const overviewTitle = aboutContent.overview_title || 'OVERVIEW AT A GLANCE'
   const competenciesTitle =
@@ -52,6 +55,8 @@ export function AboutSection({ section }: AboutSectionProps) {
           <div className="lg:col-span-5 space-y-8">
             {content.overview_rows.length > 0 ? (
               <SpiralBlock kind="card" className="card-interactive p-6">
+                {/* S6: tilt on inner div, not the spiral wrapper */}
+                <div ref={overviewTiltRef} className="hover-tilt-card">
                 <p className="eyebrow mb-4">{overviewTitle}</p>
                 <dl className="divide-y divide-line">
                   {content.overview_rows.map((row) => (
@@ -66,6 +71,7 @@ export function AboutSection({ section }: AboutSectionProps) {
                     </div>
                   ))}
                 </dl>
+                </div>
               </SpiralBlock>
             ) : null}
           </div>

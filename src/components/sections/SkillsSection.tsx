@@ -1,11 +1,70 @@
 import { useContent } from '../../context/contentContext'
 import { useReveal } from '../../hooks/useReveal'
+import { useHoverTilt } from '../../hooks/useHoverTilt'
 import type { SectionItem } from '../../types/content'
+import type { SkillDomainItem } from '../../types/content'
 import { SectionHeader } from '../SectionHeader'
 import { SpiralBlock } from '../SpiralBlock'
 
 export interface SkillsSectionProps {
   section: SectionItem
+}
+
+/** Individual skill cell with its own hover-tilt ref (S6).
+ *  SpiralBlock is the outer spiral-registered wrapper;
+ *  the inner div is the tilt target (a descendant, never the same element). */
+function SkillCell({ domain, idx }: { domain: SkillDomainItem; idx: number }) {
+  const tiltRef = useHoverTilt<HTMLDivElement>()
+
+  return (
+    <SpiralBlock
+      as="article"
+      kind="card"
+      className="bg-surface flex flex-col justify-between card-interactive"
+    >
+      {/* S6: tilt applied to this inner div, not the spiral wrapper */}
+      <div
+        ref={tiltRef}
+        className="hover-tilt-card p-7 sm:p-8 flex flex-col justify-between h-full"
+      >
+        <div>
+          <div className="flex items-center justify-between gap-2 pb-4 border-b border-line">
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted tabular-nums">
+              {String(idx + 1).padStart(2, '0')} // DOMAIN
+            </span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink font-semibold tabular-nums">
+              {domain.tools.length} {domain.tools.length === 1 ? 'TOOL' : 'TOOLS'}
+            </span>
+          </div>
+
+          <h3 className="mt-6 text-xl font-bold tracking-tight text-ink">
+            {domain.title}
+          </h3>
+
+          {domain.tools.length > 0 ? (
+            <ul className="mt-5 flex flex-wrap gap-2">
+              {domain.tools.map((tool, toolIdx) => (
+                <li
+                  key={`${tool}-${toolIdx}`}
+                  className="border border-line bg-bg/60 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.13em] text-muted transition-colors hover:border-accent"
+                >
+                  {tool}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+
+        {domain.status ? (
+          <div className="mt-8 pt-4 border-t border-line">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+              STATUS: <span className="text-ink font-semibold">{domain.status}</span>
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </SpiralBlock>
+  )
 }
 
 export function SkillsSection({ section }: SkillsSectionProps) {
@@ -38,48 +97,7 @@ export function SkillsSection({ section }: SkillsSectionProps) {
         {content.skill_domains.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-line border border-line">
             {content.skill_domains.map((domain, idx) => (
-              <SpiralBlock
-                key={domain.id}
-                as="article"
-                kind="card"
-                className="bg-surface p-7 sm:p-8 flex flex-col justify-between card-interactive"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 pb-4 border-b border-line">
-                    <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted tabular-nums">
-                      {String(idx + 1).padStart(2, '0')} // DOMAIN
-                    </span>
-                    <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink font-semibold tabular-nums">
-                      {domain.tools.length} {domain.tools.length === 1 ? 'TOOL' : 'TOOLS'}
-                    </span>
-                  </div>
-
-                  <h3 className="mt-6 text-xl font-bold tracking-tight text-ink">
-                    {domain.title}
-                  </h3>
-
-                  {domain.tools.length > 0 ? (
-                    <ul className="mt-5 flex flex-wrap gap-2">
-                      {domain.tools.map((tool, toolIdx) => (
-                        <li
-                          key={`${tool}-${toolIdx}`}
-                          className="border border-line bg-bg/60 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.13em] text-muted transition-colors hover:border-accent"
-                        >
-                          {tool}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-
-                {domain.status ? (
-                  <div className="mt-8 pt-4 border-t border-line">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-                      STATUS: <span className="text-ink font-semibold">{domain.status}</span>
-                    </p>
-                  </div>
-                ) : null}
-              </SpiralBlock>
+              <SkillCell key={domain.id} domain={domain} idx={idx} />
             ))}
           </div>
         ) : null}

@@ -29,10 +29,11 @@ export function Hero() {
   const primaryTarget = safeHeroTarget(hero.cta_primary?.target)
   const secondaryTarget = safeHeroTarget(hero.cta_secondary?.target)
 
-  // Parallax layers via spiral engine (F6)
-  const ghostParallaxRef = useSpiral<HTMLDivElement>({ kind: 'layer', depth: 0.14 })
+  // Parallax layers via spiral engine (S4)
+  const ghostParallaxRef = useSpiral<HTMLDivElement>({ kind: 'layer', depth: 0.18 })
+  const glowParallaxRef = useSpiral<HTMLDivElement>({ kind: 'layer', depth: 0.24 })
   const leftChipsParallaxRef = useSpiral<HTMLUListElement>({ kind: 'layer', depth: 0.09 })
-  const rightChipsParallaxRef = useSpiral<HTMLUListElement>({ kind: 'layer', depth: 0.09 })
+  const rightChipsParallaxRef = useSpiral<HTMLUListElement>({ kind: 'layer', depth: 0.12 })
 
   return (
     <section id="top" aria-labelledby="hero-heading" className="py-8 sm:py-12">
@@ -44,15 +45,28 @@ export function Hero() {
               'radial-gradient(circle at 50% 24%, rgb(var(--accent) / 0.14), transparent 58%)',
           }}
         >
+          {/* Avatar radial glow parallax layer (S4) */}
+          <div
+            ref={glowParallaxRef}
+            data-spiral="layer"
+            data-depth="0.24"
+            aria-hidden="true"
+            className="pointer-events-none select-none absolute left-1/2 top-16 -translate-x-1/2 w-64 h-64 rounded-full bg-accent/12 blur-3xl"
+          />
+
           {hero.ghost_word ? (
             <div
-              ref={ghostParallaxRef}
-              data-spiral="layer"
-              data-depth="0.14"
               aria-hidden="true"
-              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2 text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/2.5 whitespace-nowrap animate-float"
+              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2"
             >
-              {hero.ghost_word}
+              <div
+                ref={ghostParallaxRef}
+                data-spiral="layer"
+                data-depth="0.18"
+                className="text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/2.5 whitespace-nowrap"
+              >
+                {hero.ghost_word}
+              </div>
             </div>
           ) : null}
 
@@ -82,15 +96,16 @@ export function Hero() {
             </div>
 
             <div className="relative mt-8 w-full flex items-center justify-center">
-              {/* Left chips with staggered float (A6) + parallax (F6) */}
+              {/* Left chips with staggered float (A6) + parallax (S4) */}
               {hero.chips_left.length > 0 ? (
-                <ul
-                  ref={leftChipsParallaxRef}
-                  data-spiral="layer"
-                  data-depth="0.09"
-                  aria-label="Core specialties"
-                  className="hidden lg:flex flex-col items-start gap-3 absolute left-0 top-1/2 -translate-y-1/2"
-                >
+                <div className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2">
+                  <ul
+                    ref={leftChipsParallaxRef}
+                    data-spiral="layer"
+                    data-depth="0.09"
+                    aria-label="Core specialties"
+                    className="flex flex-col items-start gap-3"
+                  >
                   {hero.chips_left.map((chip, idx) => (
                     <li
                       key={`${chip}-${idx}`}
@@ -103,7 +118,8 @@ export function Hero() {
                       {chip}
                     </li>
                   ))}
-                </ul>
+                  </ul>
+                </div>
               ) : null}
 
               <div className="max-w-3xl mx-auto">
@@ -160,15 +176,16 @@ export function Hero() {
                 ) : null}
               </div>
 
-              {/* Right chips with staggered float (A6) + parallax (F6) */}
+              {/* Right chips with staggered float (A6) + parallax (S4) */}
               {hero.chips_right.length > 0 ? (
-                <ul
-                  ref={rightChipsParallaxRef}
-                  data-spiral="layer"
-                  data-depth="0.09"
-                  aria-label="Engineering practices"
-                  className="hidden lg:flex flex-col items-end gap-3 absolute right-0 top-1/2 -translate-y-1/2"
-                >
+                <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2">
+                  <ul
+                    ref={rightChipsParallaxRef}
+                    data-spiral="layer"
+                    data-depth="0.12"
+                    aria-label="Engineering practices"
+                    className="flex flex-col items-end gap-3"
+                  >
                   {hero.chips_right.map((chip, idx) => (
                     <li
                       key={`${chip}-${idx}`}
@@ -181,7 +198,8 @@ export function Hero() {
                       {chip}
                     </li>
                   ))}
-                </ul>
+                  </ul>
+                </div>
               ) : null}
             </div>
 

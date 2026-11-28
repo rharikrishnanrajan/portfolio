@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { Hero } from '../components/Hero'
+import { ParallaxOrb } from '../components/ParallaxOrb'
 import { RegisteredSection } from '../components/sections/SectionRegistry'
 import { useContent } from '../context/contentContext'
 
@@ -18,7 +19,10 @@ export function PortfolioHomePage() {
   )
 
   return (
-    <>
+    <div className="relative overflow-x-clip">
+      <ParallaxOrb depth={0.14} size="lg" positionClass="top-[28rem] -right-48" />
+      <ParallaxOrb depth={0.22} size="md" positionClass="top-[95rem] -left-44" />
+      <ParallaxOrb depth={0.18} size="sm" positionClass="bottom-72 -right-32" />
       <Hero />
       {orderedSections.map((section, idx) => (
         <RegisteredSection
@@ -27,7 +31,7 @@ export function PortfolioHomePage() {
           displayNumber={String(idx + 1).padStart(2, '0')}
         />
       ))}
-    </>
+    </div>
   )
 }
 

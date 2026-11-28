@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { safeImageUrl } from '../lib/safeUrl'
+import { useHoverTilt } from '../hooks/useHoverTilt'
 import type { ProjectItem } from '../types/content'
 
 export type CoverVariant = 'natural' | 'cropped'
@@ -21,6 +22,9 @@ export interface ProjectCoverProps {
  *              aspect-ratio via style.setProperty. Safety cap: max-height 32rem; if exceeded,
  *              uses object-fit: contain with bg-surface background, centered.
  *              Wraps in an anchor with zoom-in cursor and hover border color change.
+ *
+ * S6: Hover tilt is applied to the cropped variant wrapper (a descendant of the spiral block).
+ *     Natural variant is inside an <a> anchor so tilt is skipped there.
  */
 function setWrapperNaturalAspectRatio(wrapper: HTMLDivElement | null, img: HTMLImageElement) {
   if (!wrapper) return
@@ -34,8 +38,11 @@ function setWrapperNaturalAspectRatio(wrapper: HTMLDivElement | null, img: HTMLI
 export function ProjectCover({ project, variant = 'cropped', className = '' }: ProjectCoverProps) {
   const [coverFailed, setCoverFailed] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-  const wrapperRef = useRef<HTMLDivElement>(null)
+  // For the natural variant: separate ref to track wrapper for aspect-ratio update.
+  const naturalWrapperRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
+  // S6: hover tilt on the cropped variant wrapper (a descendant of the spiral block)
+  const croppedTiltRef = useHoverTilt<HTMLDivElement>()
 
   const safeCover = safeImageUrl(project.cover_url)
 
@@ -45,7 +52,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
     if (img && img.complete && img.naturalWidth > 0) {
       setIsLoaded(true)
       if (variant === 'natural') {
-        setWrapperNaturalAspectRatio(wrapperRef.current, img)
+        setWrapperNaturalAspectRatio(naturalWrapperRef.current, img)
       }
     }
   }, [variant])
@@ -53,7 +60,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
   const handleLoad = () => {
     setIsLoaded(true)
     if (variant === 'natural' && imgRef.current) {
-      setWrapperNaturalAspectRatio(wrapperRef.current, imgRef.current)
+      setWrapperNaturalAspectRatio(naturalWrapperRef.current, imgRef.current)
     }
   }
 
@@ -109,7 +116,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
         className={`group block w-full cursor-zoom-in hover:border-accent transition-colors duration-200 ${className}`.trim()}
       >
         <div
-          ref={wrapperRef}
+          ref={naturalWrapperRef}
           style={{ aspectRatio: '16 / 9' }}
           className="relative w-full box-border max-h-[32rem] overflow-hidden border border-line bg-surface transition-colors duration-200 group-hover:border-accent"
         >
@@ -121,8 +128,8 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
 
   return (
     <div
-      ref={wrapperRef}
-      className={`cover-wrapper relative overflow-hidden border border-line bg-surface aspect-[16/9] ${className}`.trim()}
+      ref={croppedTiltRef}
+      className={`cover-wrapper hover-tilt-card relative overflow-hidden border border-line bg-surface aspect-[16/9] ${className}`.trim()}
     >
       {imageContent}
     </div>

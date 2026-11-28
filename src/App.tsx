@@ -4,30 +4,14 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { Footer } from './components/Footer'
 import { Navbar } from './components/Navbar'
 import { ContentUpdatedPill } from './components/ContentUpdatedPill'
+import { SpiralBackground } from './components/SpiralBackground'
 import { EmptyView, LoadingView, UnavailableView } from './components/StatusViews'
 import { ContentProvider } from './context/ContentProvider'
 import { useContent } from './context/contentContext'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PortfolioHomePage } from './pages/PortfolioHomePage'
 import { initScrollProgress, BACK_TO_TOP_THRESHOLD } from './lib/scroll'
-import { spiralEngine } from './lib/spiral'
-
-/** Generates a logarithmic spiral SVG path: r = a * e^(b*theta) */
-function buildSpiralPath(turns = 3.5, steps = 300): string {
-  const a = 20
-  const b = 0.22
-  const pts: string[] = []
-  for (let i = 0; i <= steps; i++) {
-    const theta = (i / steps) * turns * 2 * Math.PI
-    const r = a * Math.exp(b * theta)
-    const x = 450 + r * Math.cos(theta)
-    const y = 450 + r * Math.sin(theta)
-    pts.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`)
-  }
-  return pts.join(' ')
-}
-
-const SPIRAL_PATH = buildSpiralPath()
+import { spiralEngine } from './lib/spiralEngine'
 
 const ProjectsArchivePage = lazy(() => import('./pages/ProjectsArchivePage'))
 const CertificationsArchivePage = lazy(() => import('./pages/CertificationsArchivePage'))
@@ -137,12 +121,8 @@ export function AppRoutes() {
         Skip to content
       </a>
 
-      {/* F6: Decorative spiral background — aria-hidden, fixed, below content */}
-      <div className="spiral-bg" aria-hidden="true">
-        <svg viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d={SPIRAL_PATH} stroke="rgb(var(--accent))" strokeWidth="1.5" fill="none" />
-        </svg>
-      </div>
+      {/* S5: Decorative spiral background — aria-hidden, fixed, below content, engine-driven */}
+      <SpiralBackground />
 
       <Navbar />
 

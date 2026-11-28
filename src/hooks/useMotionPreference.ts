@@ -10,6 +10,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react'
+import { spiralEngine } from '../lib/spiralEngine'
 
 export const MOTION_STORAGE_KEY = 'portfolio:motion'
 
@@ -61,6 +62,9 @@ export function useMotionPreference(): {
       writeStoredMotion(next)
       return next
     })
+    // S8: tell the spiral engine to re-evaluate motionEnabled() immediately
+    // so elements are reset/activated without waiting for the next scroll event.
+    spiralEngine.refresh()
   }, [])
 
   return { motionEnabled: pref === 'on', toggle }
