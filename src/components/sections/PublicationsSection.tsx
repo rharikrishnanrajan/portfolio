@@ -1,13 +1,20 @@
-import { BookOpen, ExternalLink } from 'lucide-react'
+import { BookOpen, ExternalLink, FileText } from 'lucide-react'
 import { useContent } from '../../context/contentContext'
 import { useReveal } from '../../hooks/useReveal'
-import { formatMonthYear } from '../../lib/dates'
-import { safeUrl } from '../../lib/safeUrl'
+import { formatDayMonthYear } from '../../lib/dates'
+import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
 import type { SectionItem } from '../../types/content'
+import { IconButton } from '../IconButton'
 import { SectionHeader } from '../SectionHeader'
 
 export interface PublicationsSectionProps {
   section: SectionItem
+}
+
+/** Returns true if the url is a Supabase storage doc or ends with .pdf */
+function isPdfUrl(url: string): boolean {
+  if (safeStorageUrl(url)) return true
+  return url.toLowerCase().endsWith('.pdf')
 }
 
 export function PublicationsSection({ section }: PublicationsSectionProps) {
@@ -36,15 +43,19 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
           rightMeta={
             <p className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted animate-fade-up" style={{ '--reveal-i': 0 }}>
               <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>{content.publications.length} PUBLISHED ITEMS</span>
+              <span>{content.publications.length} PUBLISHED ITEM{content.publications.length !== 1 ? 'S' : ''}</span>
             </p>
           }
         />
 
         <div className="divide-y border-b border-line animate-fade-up" style={{ '--reveal-i': 1 }}>
           {content.publications.map((pub, idx) => {
-            const publishedDate = formatMonthYear(pub.published_on)
+            const publishedDate = formatDayMonthYear(pub.published_on)
             const safePubUrl = safeUrl(pub.url, { allowMailtoTel: false })
+            const isPdf = safePubUrl ? isPdfUrl(safePubUrl) : false
+            const docLabel = isPdf
+              ? `Open paper document for ${pub.title} (opens in a new tab)`
+              : `Open paper for ${pub.title} (opens in a new tab)`
 
             return (
               <article
@@ -52,27 +63,32 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
                 className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-start row-interactive"
               >
                 <div className="md:col-span-2 font-mono text-xs uppercase tracking-[0.2em] text-muted pt-1 tabular-nums">
-                  {String(idx + 1).padStart(2, '0')} // PUB
+                  {String(idx + 1).padStart(2, '0')} // PAPER
                 </div>
 
-                <div className="md:col-span-6 space-y-2">
-                  <h3 className="text-lg font-bold tracking-tight text-ink">{pub.title}</h3>
+                <div className="md:col-span-7 space-y-2">
+                  <h3 className="text-xl font-bold tracking-tight text-ink leading-tight">
+                    {pub.title}
+                  </h3>
                   {pub.venue ? (
                     <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
                       {pub.venue}
                     </p>
                   ) : null}
+                  <span className="inline-block font-mono text-[9px] uppercase tracking-[0.18em] text-muted border border-line px-2 py-0.5">
+                    PRESENTED &amp; PUBLISHED
+                  </span>
                   {pub.summary ? (
-                    <p className="text-sm text-muted leading-relaxed whitespace-pre-line">
+                    <p className="text-sm text-muted leading-relaxed whitespace-pre-line max-w-prose">
                       {pub.summary}
                     </p>
                   ) : null}
                   {pub.reference ? (
-                    <p className="font-mono text-xs text-muted/85">{pub.reference}</p>
+                    <p className="font-mono text-xs text-muted/80 wrap-break-word">{pub.reference}</p>
                   ) : null}
                 </div>
 
-                <div className="md:col-span-4 flex items-center md:justify-end gap-6">
+                <div className="md:col-span-3 flex flex-wrap items-center md:justify-end gap-4">
                   {publishedDate ? (
                     <span className="font-mono text-xs uppercase tracking-[0.18em] text-muted tabular-nums">
                       {publishedDate}
@@ -80,15 +96,18 @@ export function PublicationsSection({ section }: PublicationsSectionProps) {
                   ) : null}
 
                   {safePubUrl ? (
-                    <a
+                    <IconButton
                       href={safePubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Read ${pub.title} (opens in a new tab)`}
-                      className="h-10 w-10 border border-line bg-surface flex items-center justify-center text-muted hover:text-ink hover:border-accent transition-colors shrink-0 link-icon"
-                    >
-                      <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                    </a>
+                      label={docLabel}
+                      tip={isPdf ? 'Open paper PDF' : 'Open paper link'}
+                      icon={
+                        isPdf ? (
+                          <FileText className="h-4 w-4" aria-hidden="true" />
+                        ) : (
+                          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                        )
+                      }
+                    />
                   ) : null}
                 </div>
               </article>

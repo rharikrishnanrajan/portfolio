@@ -43,53 +43,56 @@ interface FontSpec {
 
 const HEADING_ALIASES: Record<string, string> = {
   Inter: 'Inter Variable',
+  // F5: alias proprietary/system fonts to open-source equivalents
+  Georgia: 'Merriweather',
 }
 
 const MONO_ALIASES: Record<string, string> = {
   'JetBrains Mono': 'JetBrains Mono Variable',
+  // F5: alias Courier New to Source Code Pro (open-source)
+  'Courier New': 'Source Code Pro',
 }
 
 const HEADING_FONT_MAP: Record<string, FontSpec> = {
   'Inter Variable': {
-    cssFamily: '"Inter Variable", system-ui, -apple-system, sans-serif',
+    // F5: clean fallback stack — no proprietary named families
+    cssFamily: '"Inter Variable", ui-sans-serif, system-ui, sans-serif',
     loader: () => import('@fontsource-variable/inter'),
   },
-  Georgia: {
-    cssFamily: 'Georgia, Cambria, "Times New Roman", serif',
-  },
   Merriweather: {
-    cssFamily: '"Merriweather Variable", Georgia, serif',
+    cssFamily: '"Merriweather Variable", ui-serif, serif',
     loader: () => import('@fontsource-variable/merriweather'),
   },
   'Playfair Display': {
-    cssFamily: '"Playfair Display Variable", Georgia, serif',
+    cssFamily: '"Playfair Display Variable", ui-serif, serif',
     loader: () => import('@fontsource-variable/playfair-display'),
   },
   Raleway: {
-    cssFamily: '"Raleway Variable", system-ui, sans-serif',
+    cssFamily: '"Raleway Variable", ui-sans-serif, system-ui, sans-serif',
     loader: () => import('@fontsource-variable/raleway'),
   },
   Nunito: {
-    cssFamily: '"Nunito Variable", system-ui, sans-serif',
+    cssFamily: '"Nunito Variable", ui-sans-serif, system-ui, sans-serif',
     loader: () => import('@fontsource-variable/nunito'),
   },
 }
 
 const MONO_FONT_MAP: Record<string, FontSpec> = {
   'JetBrains Mono Variable': {
-    cssFamily: '"JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace',
+    // F5: clean fallback stack — no proprietary named families
+    cssFamily: '"JetBrains Mono Variable", ui-monospace, monospace',
     loader: () => import('@fontsource-variable/jetbrains-mono'),
   },
   'Fira Code': {
-    cssFamily: '"Fira Code Variable", ui-monospace, SFMono-Regular, Menlo, monospace',
+    cssFamily: '"Fira Code Variable", ui-monospace, monospace',
     loader: () => import('@fontsource-variable/fira-code'),
   },
   'Source Code Pro': {
-    cssFamily: '"Source Code Pro Variable", ui-monospace, SFMono-Regular, Menlo, monospace',
+    cssFamily: '"Source Code Pro Variable", ui-monospace, monospace',
     loader: () => import('@fontsource-variable/source-code-pro'),
   },
   'IBM Plex Mono': {
-    cssFamily: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
+    cssFamily: '"IBM Plex Mono", ui-monospace, monospace',
     loader: () =>
       Promise.all([
         import('@fontsource/ibm-plex-mono/latin-400.css'),
@@ -97,9 +100,6 @@ const MONO_FONT_MAP: Record<string, FontSpec> = {
         import('@fontsource/ibm-plex-mono/latin-600.css'),
         import('@fontsource/ibm-plex-mono/latin-700.css'),
       ]),
-  },
-  'Courier New': {
-    cssFamily: '"Courier New", Courier, monospace',
   },
 }
 

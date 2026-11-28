@@ -1,10 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import {
   AlertTriangle,
-  ArrowUpRight,
   FileDown,
-  GitBranch,
-  Globe,
   Mail,
   MapPin,
   Phone,
@@ -21,6 +18,7 @@ import {
 import { safeUrl } from '../../lib/safeUrl'
 import type { SectionItem } from '../../types/content'
 import { SectionHeader } from '../SectionHeader'
+import { BrandIcon } from '../BrandIcon'
 
 export interface ContactSectionProps {
   section: SectionItem
@@ -32,15 +30,6 @@ interface FieldErrors {
   email?: string
   subject?: string
   body?: string
-}
-
-function getSocialIcon(iconName: string | null) {
-  const key = (iconName ?? '').trim().toLowerCase()
-  if (key === 'github' || key === 'git') return GitBranch
-  if (key === 'mail' || key === 'email') return Mail
-  if (key === 'phone') return Phone
-  if (key === 'linkedin') return ArrowUpRight
-  return Globe
 }
 
 export function ContactSection({ section, displayNumber }: ContactSectionProps) {
@@ -223,7 +212,6 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
               ) : null}
 
               {safeSocials.map((link, idx) => {
-                const IconComponent = getSocialIcon(link.icon)
                 return (
                   <a
                     key={link.id}
@@ -233,9 +221,9 @@ export function ContactSection({ section, displayNumber }: ContactSectionProps) 
                     className="py-4 flex items-center gap-4 text-sm text-ink/90 hover:text-ink transition-colors group row-interactive animate-fade-up"
                     style={{ '--reveal-i': 4 + idx }}
                   >
-                    <IconComponent
+                    <BrandIcon
+                      name={link.icon ?? ''}
                       className="h-4 w-4 text-muted group-hover:text-accent shrink-0 transition-colors link-icon"
-                      aria-hidden="true"
                     />
                     <span className="truncate">{link.label}</span>
                   </a>

@@ -160,3 +160,18 @@ npm run verify:dist
 ## Node Version
 
 Requires Node.js **≥ 20.19.0** (or Node 22+). Declared in `package.json` `"engines"` field.
+
+---
+
+## Motion Engine, Publications & Certificate Actions
+
+- **Spiral 3D scroll & parallax (`src/lib/spiral.ts`, `src/hooks/useSpiral.ts`)**: Inner wrappers opt in via `data-spiral="block" | "card" | "layer"` with a shared `IntersectionObserver` and single `requestAnimationFrame` loop that stops when settled (`e >= 0.999` removes inline transforms and `will-change`). Disabled automatically for `prefers-reduced-motion: reduce`, `html[data-motion="reduced"]`, `saveData`, and viewports narrower than `768px`, and never applied to `#contact`, `nav`, or `dialog`.
+- **Motion preference switch (`src/hooks/useMotionPreference.ts`)**: Footer button ("Motion: on/off") stores `"on"` or `"off"` under `portfolio:motion` in `localStorage` and toggles `data-motion="reduced"` on `<html>`.
+- **Action buttons (`src/components/IconButton.tsx`, `src/components/BrandIcon.tsx`)**: Icon-only 44×44 px (`min-h-11 min-w-11`) buttons with CSS-only tooltips (`data-tip`), used across project case studies (GitHub, up to 3 storage document buttons with `+N` archive link, live demo), certifications (PDF vs credential verification), and publications (`DD MON YYYY` formatting, `PRESENTED & PUBLISHED` badge, PDF/external link).
+
+---
+
+## Third-party Icons and Fonts
+
+- **Icons**: Font Awesome Free icons via [`react-icons`](https://react-icons.github.io/react-icons/) (CC BY 4.0, attribution; `lucide-react` used as fallback until `npm install react-icons` is run).
+- **Fonts**: Self-hosted open-source `@fontsource` fonts (SIL OFL 1.1 or Apache 2.0), defaulting to `Inter Variable` and `JetBrains Mono Variable` with open-source fallbacks only.

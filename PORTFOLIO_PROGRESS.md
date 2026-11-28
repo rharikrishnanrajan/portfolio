@@ -1,6 +1,27 @@
 # Portfolio Build — Progress Log
 
-> Last updated: 2026-11-27 (icon-only action buttons refactor)
+> Last updated: 2026-11-28 (FINAL POLISH F1–F10)
+
+---
+
+## FINAL POLISH progress
+
+> react-icons NOT installed (not in node_modules or package.json). All icons implemented with lucide-react (already installed). The owner must run `npm install react-icons` before the react-icons imports will work; until then all icons use lucide equivalents. Noted per-item below.
+
+| Item | Status | Files |
+|------|--------|-------|
+| F1: BrandIcon + IconButton components | ✅ | `src/components/BrandIcon.tsx`, `src/components/IconButton.tsx`, `src/components/sections/ContactSection.tsx`, `src/components/Footer.tsx`, `src/index.css` |
+| F2: Project section icon-only buttons | ✅ | `src/components/sections/ProjectCaseStudy.tsx`, `src/components/GithubMark.tsx`, `src/__tests__/sections.test.tsx` |
+| F3: Publications section improvements | ✅ | `src/components/sections/PublicationsSection.tsx`, `src/lib/dates.ts`, `src/__tests__/sections.test.tsx` |
+| F4: Certificates PDF/link button | ✅ | `src/components/sections/CertificationRow.tsx`, `src/__tests__/sections.test.tsx` |
+| F5: Typography tokens & font fixes | ✅ | `src/index.css`, `src/lib/theme.ts`, `src/__tests__/typography.test.ts` |
+| F6: Spiral 3D scroll + parallax | ✅ | `src/lib/spiral.ts`, `src/hooks/useSpiral.ts`, `src/App.tsx`, `src/components/Hero.tsx`, `src/components/sections/AboutSection.tsx`, `src/components/sections/ProjectCaseStudy.tsx`, `src/index.css`, `src/__tests__/spiral.test.ts` |
+| F7: Dynamic micro-interactions | ✅ | `src/index.css`, `src/components/Footer.tsx` |
+| F8: Motion preference switch | ✅ | `src/hooks/useMotionPreference.ts`, `src/components/Footer.tsx`, `src/index.css` |
+| F9: Content checks update | ✅ | `scripts/check-content.mjs` |
+| F10: Quality gates, README, audit | ✅ | `README.md`, `PORTFOLIO_PROGRESS.md`, `npm run lint` (0 errors, 0 warnings) |
+
+---
 
 ---
 

@@ -36,6 +36,26 @@ export function formatMonthYear(dateStr: string | null | undefined): string | nu
   return `${MONTHS_UPPER[month - 1]} ${match[1]}`
 }
 
+/**
+ * Formats "YYYY-MM-DD" as "DD MON YYYY" (e.g. "21 MAR 2025").
+ * Returns null for invalid or missing input.
+ */
+export function formatDayMonthYear(dateStr: string | null | undefined): string | null {
+  if (!dateStr || typeof dateStr !== 'string') return null
+  const match = DATE_RE.exec(dateStr.trim())
+  if (!match) return null
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+
+  if (!Number.isInteger(year) || year < 1000 || year > 9999) return null
+  if (!Number.isInteger(month) || month < 1 || month > 12) return null
+  if (!Number.isInteger(day) || day < 1 || day > 31) return null
+
+  return `${String(day).padStart(2, '0')} ${MONTHS_UPPER[month - 1]} ${match[1]}`
+}
+
 export function formatDateRange(
   startDate: string | null | undefined,
   endDate: string | null | undefined,

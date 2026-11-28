@@ -1,16 +1,27 @@
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, FileText } from 'lucide-react'
 import { formatDateRange } from '../../lib/dates'
-import { safeUrl } from '../../lib/safeUrl'
+import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
 import type { CertificationItem } from '../../types/content'
+import { IconButton } from '../IconButton'
 
 export interface CertificationRowProps {
   certification: CertificationItem
   index: number
 }
 
+/** Returns true if the url is a Supabase storage doc or ends with .pdf */
+function isPdfUrl(url: string): boolean {
+  if (safeStorageUrl(url)) return true
+  return url.toLowerCase().endsWith('.pdf')
+}
+
 export function CertificationRow({ certification, index }: CertificationRowProps) {
   const dateRange = formatDateRange(certification.start_date, certification.end_date)
   const safeCredUrl = safeUrl(certification.credential_url, { allowMailtoTel: false })
+  const isPdf = safeCredUrl ? isPdfUrl(safeCredUrl) : false
+  const credLabel = isPdf
+    ? `Open certificate PDF for ${certification.title} (opens in a new tab)`
+    : `Verify credential for ${certification.title} (opens in a new tab)`
 
   return (
     <article className="py-6 px-4 -mx-4 grid gap-4 md:grid-cols-12 md:items-center row-interactive">
@@ -35,15 +46,18 @@ export function CertificationRow({ certification, index }: CertificationRowProps
         ) : null}
 
         {safeCredUrl ? (
-          <a
+          <IconButton
             href={safeCredUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`View ${certification.title} credential (opens in a new tab)`}
-            className="h-10 w-10 border border-line bg-surface flex items-center justify-center text-muted hover:text-ink hover:border-accent transition-colors shrink-0 link-icon"
-          >
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
+            label={credLabel}
+            tip={isPdf ? 'Open certificate PDF' : 'Verify credential'}
+            icon={
+              isPdf ? (
+                <FileText className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              )
+            }
+          />
         ) : null}
       </div>
     </article>

@@ -132,10 +132,34 @@ async function main() {
   const education = Array.isArray(data.education) ? data.education : []
   const certifications = Array.isArray(data.certifications) ? data.certifications : []
   const publications = Array.isArray(data.publications) ? data.publications : []
+  const socialLinks = Array.isArray(data.social_links) ? data.social_links : []
 
   const profile = data.profile || {}
   const hasAvatar = typeof profile.avatar_url === 'string' && profile.avatar_url.trim().length > 0
   const hasResume = typeof profile.resume_url === 'string' && profile.resume_url.trim().length > 0
+
+  // --- helpers (F9) ---
+  // Allowed Supabase storage prefixes (mirrors safeUrl.ts)
+  const STORAGE_PREFIXES = ['project-documents/', 'portfolio/']
+  function looksLikeStorageUrl(url) {
+    if (typeof url !== 'string' || !url) return false
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol !== 'https:') return false
+      const path = parsed.pathname
+      return STORAGE_PREFIXES.some((prefix) => path.includes(`/object/public/${prefix}`))
+    } catch {
+      return false
+    }
+  }
+  function isPdfUrl(url) {
+    if (typeof url !== 'string' || !url) return false
+    try {
+      return new URL(url).pathname.toLowerCase().endsWith('.pdf')
+    } catch {
+      return url.toLowerCase().endsWith('.pdf')
+    }
+  }
 
   console.log(`version: ${version}`)
   console.log(`sections: ${visibleSections.length}`)
@@ -153,8 +177,38 @@ async function main() {
   }
   console.log(`skills: ${skills.length}`)
   console.log(`education: ${education.length}`)
+
+  // F9: Certifications — show pdf ✓/✗ per entry
   console.log(`certifications: ${certifications.length}`)
+  for (const c of certifications) {
+    const credUrl = c?.credential_url ?? ''
+    const hasPdf = isPdfUrl(credUrl) || looksLikeStorageUrl(credUrl)
+    const title = typeof c?.title === 'string' ? truncate(c.title, 50) : 'Untitled'
+    console.log(`  - ${title} [pdf ${hasPdf ? '✓' : '✗'}]`)
+  }
+
+  // F9: Publications — show url set/unset and storage doc ✓/✗
   console.log(`publications: ${publications.length}`)
+  for (const p of publications) {
+    const pubTitle = typeof p?.title === 'string' ? truncate(p.title, 50) : 'Untitled'
+    const hasUrl = typeof p?.url === 'string' && p.url.trim().length > 0
+    const hasStorageDoc = Array.isArray(p?.files)
+      ? p.files.some((f) => looksLikeStorageUrl(f?.url))
+      : looksLikeStorageUrl(p?.document_url)
+    console.log(`  - ${pubTitle} [url: ${hasUrl ? 'set' : 'unset'}, storage doc: ${hasStorageDoc ? '✓' : '✗'}]`)
+  }
+
+  // F9: Social links — icons list (counts only, no URLs or private keys)
+  console.log(`social_links: ${socialLinks.length}`)
+  const iconCounts = {}
+  for (const link of socialLinks) {
+    const icon = typeof link?.icon === 'string' ? link.icon.toLowerCase().trim() : 'unknown'
+    iconCounts[icon] = (iconCounts[icon] ?? 0) + 1
+  }
+  for (const [icon, count] of Object.entries(iconCounts)) {
+    console.log(`  - icon "${icon}": ${count}`)
+  }
+
   console.log(`profile.avatar_url: ${hasAvatar ? 'set' : 'unset'}`)
   console.log(`profile.resume_url: ${hasResume ? 'set' : 'unset'}`)
 

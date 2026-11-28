@@ -1,6 +1,9 @@
-import { ExternalLink, FileText } from 'lucide-react'
+import { ExternalLink, FileSpreadsheet, FileText, Image, Presentation } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { safeUrl, safeStorageUrl } from '../../lib/safeUrl'
+import { useSpiral } from '../../hooks/useSpiral'
 import { GithubMark } from '../GithubMark'
+import { IconButton } from '../IconButton'
 import { ProjectCover } from '../ProjectCover'
 import type { ProjectItem } from '../../types/content'
 
@@ -12,10 +15,26 @@ export interface ProjectCaseStudyProps {
 
 const MAX_DOCUMENT_BUTTONS = 3
 
-const ICON_BUTTON_CLASS =
-  'inline-flex h-10 w-10 max-sm:h-11 max-sm:w-11 items-center justify-center border border-line bg-surface text-muted transition-[border-color,color,transform] duration-[var(--dur-fast)] ease-[var(--ease-out)] hover:border-accent hover:text-ink hover:-translate-y-px focus-visible:border-accent focus-visible:text-ink focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+function getDocumentIcon(name: string, mimeType?: string) {
+  const lowerName = name.toLowerCase()
+  const lowerMime = (mimeType ?? '').toLowerCase()
+  if (lowerName.endsWith('.ppt') || lowerName.endsWith('.pptx') || lowerMime.includes('presentation')) {
+    return <Presentation className="h-5 w-5" aria-hidden="true" />
+  }
+  if (lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx') || lowerMime.includes('spreadsheet')) {
+    return <FileSpreadsheet className="h-5 w-5" aria-hidden="true" />
+  }
+  if (
+    /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(lowerName) ||
+    lowerMime.startsWith('image/')
+  ) {
+    return <Image className="h-5 w-5" aria-hidden="true" />
+  }
+  return <FileText className="h-5 w-5" aria-hidden="true" />
+}
 
 export function ProjectCaseStudy({ project, index, showCover = false }: ProjectCaseStudyProps) {
+  const spiralRef = useSpiral<HTMLDivElement>({ kind: 'block' })
   const safeGithub = safeUrl(project.github_url, { allowMailtoTel: false })
   const safeLive = safeUrl(project.live_url, { allowMailtoTel: false })
 
@@ -32,8 +51,8 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
   const hasCover = showCover && project.cover_url
 
   return (
-    <article className="py-12 sm:py-16">
-      <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
+    <article id={`project-${project.id}`} className="py-12 sm:py-16 scroll-mt-20">
+      <div ref={spiralRef} data-spiral="block" className="grid gap-8 lg:grid-cols-12 lg:items-start">
         <div className="lg:col-span-4 space-y-5">
           <div className="flex items-baseline gap-4">
             <span className="text-4xl sm:text-5xl font-bold tracking-tight text-ink tabular-nums">
@@ -82,52 +101,43 @@ export function ProjectCaseStudy({ project, index, showCover = false }: ProjectC
             {hasActions ? (
               <div className="flex flex-wrap items-center gap-2 shrink-0">
                 {safeGithub ? (
-                  <a
+                  <IconButton
                     href={safeGithub}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`GitHub repository for ${project.title} (opens in a new tab)`}
-                    title={`GitHub repository for ${project.title} (opens in a new tab)`}
-                    className={ICON_BUTTON_CLASS}
-                  >
-                    <GithubMark className="h-5 w-5" />
-                  </a>
-                ) : null}
-                {safeLive ? (
-                  <a
-                    href={safeLive}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Live demo of ${project.title} (opens in a new tab)`}
-                    title={`Live demo of ${project.title} (opens in a new tab)`}
-                    className={ICON_BUTTON_CLASS}
-                  >
-                    <ExternalLink className="h-5 w-5" aria-hidden="true" />
-                  </a>
+                    label={`GitHub repository for ${project.title} (opens in a new tab)`}
+                    tip={`GitHub: ${project.title}`}
+                    icon={<GithubMark className="h-5 w-5" />}
+                  />
                 ) : null}
                 {visibleFiles.map((file, fileIdx) => {
                   const docLabel = `Open document ${file.name} for ${project.title} (opens in a new tab)`
                   return (
-                    <a
+                    <IconButton
                       key={`${file.url}-${fileIdx}`}
                       href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={docLabel}
-                      title={docLabel}
-                      className={ICON_BUTTON_CLASS}
-                    >
-                      <FileText className="h-5 w-5" aria-hidden="true" />
-                    </a>
+                      label={docLabel}
+                      tip={file.name}
+                      icon={getDocumentIcon(file.name, file.type)}
+                    />
                   )
                 })}
                 {overflowCount > 0 ? (
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex h-10 w-10 max-sm:h-11 max-sm:w-11 items-center justify-center border border-line bg-surface font-mono text-xs text-muted select-none"
+                  <Link
+                    to={`/projects#project-${project.id}`}
+                    aria-label={`View ${overflowCount} more documents for ${project.title} in Projects Archive`}
+                    title={`View ${overflowCount} more documents for ${project.title}`}
+                    data-tip={`+${overflowCount} more in archive`}
+                    className="icon-btn font-mono text-xs font-semibold"
                   >
                     +{overflowCount}
-                  </span>
+                  </Link>
+                ) : null}
+                {safeLive ? (
+                  <IconButton
+                    href={safeLive}
+                    label={`Live demo of ${project.title} (opens in a new tab)`}
+                    tip={`Live demo: ${project.title}`}
+                    icon={<ExternalLink className="h-5 w-5" aria-hidden="true" />}
+                  />
                 ) : null}
               </div>
             ) : null}

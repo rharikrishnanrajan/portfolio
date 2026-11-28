@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ArrowRight, Mail } from 'lucide-react'
 import { useContent } from '../context/contentContext'
 import { safeHeroTarget, safeImageUrl } from '../lib/safeUrl'
-import { useReducedMotion } from '../hooks/useReducedMotion'
+import { useSpiral } from '../hooks/useSpiral'
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -21,7 +21,6 @@ export function Hero() {
   const { hero } = settings
   const [imgFailed, setImgFailed] = useState(false)
   const [avatarLoaded, setAvatarLoaded] = useState(false)
-  const reducedMotion = useReducedMotion()
 
   const displayName = profile?.full_name || settings.brand_name
   const safeAvatar = safeImageUrl(profile?.avatar_url)
@@ -30,18 +29,10 @@ export function Hero() {
   const primaryTarget = safeHeroTarget(hero.cta_primary?.target)
   const secondaryTarget = safeHeroTarget(hero.cta_secondary?.target)
 
-  // Ghost word parallax (A6) - progressive enhancement
-  const [ghostY, setGhostY] = useState(0)
-  useEffect(() => {
-    if (reducedMotion) return
-    const handleScroll = () => {
-      const scrollY = window.scrollY
-      const maxParallax = 24 // max 24px movement
-      setGhostY(Math.min(scrollY * 0.15, maxParallax))
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [reducedMotion])
+  // Parallax layers via spiral engine (F6)
+  const ghostParallaxRef = useSpiral<HTMLDivElement>({ kind: 'layer', depth: 0.14 })
+  const leftChipsParallaxRef = useSpiral<HTMLUListElement>({ kind: 'layer', depth: 0.09 })
+  const rightChipsParallaxRef = useSpiral<HTMLUListElement>({ kind: 'layer', depth: 0.09 })
 
   return (
     <section id="top" aria-labelledby="hero-heading" className="py-8 sm:py-12">
@@ -55,11 +46,11 @@ export function Hero() {
         >
           {hero.ghost_word ? (
             <div
+              ref={ghostParallaxRef}
+              data-spiral="layer"
+              data-depth="0.14"
               aria-hidden="true"
-              className="pointer-events-none select-none absolute inset-x-0 top-[52%] text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/2.5 whitespace-nowrap animate-float"
-              style={{
-                transform: `translateY(calc(-50% + ${ghostY}px))`,
-              }}
+              className="pointer-events-none select-none absolute inset-x-0 top-[52%] -translate-y-1/2 text-center font-bold uppercase tracking-[0.06em] text-[clamp(4.5rem,15vw,12.5rem)] leading-none text-ink/2.5 whitespace-nowrap animate-float"
             >
               {hero.ghost_word}
             </div>
@@ -91,9 +82,12 @@ export function Hero() {
             </div>
 
             <div className="relative mt-8 w-full flex items-center justify-center">
-              {/* Left chips with staggered float (A6) */}
+              {/* Left chips with staggered float (A6) + parallax (F6) */}
               {hero.chips_left.length > 0 ? (
                 <ul
+                  ref={leftChipsParallaxRef}
+                  data-spiral="layer"
+                  data-depth="0.09"
                   aria-label="Core specialties"
                   className="hidden lg:flex flex-col items-start gap-3 absolute left-0 top-1/2 -translate-y-1/2"
                 >
@@ -166,9 +160,12 @@ export function Hero() {
                 ) : null}
               </div>
 
-              {/* Right chips with staggered float (A6) */}
+              {/* Right chips with staggered float (A6) + parallax (F6) */}
               {hero.chips_right.length > 0 ? (
                 <ul
+                  ref={rightChipsParallaxRef}
+                  data-spiral="layer"
+                  data-depth="0.09"
                   aria-label="Engineering practices"
                   className="hidden lg:flex flex-col items-end gap-3 absolute right-0 top-1/2 -translate-y-1/2"
                 >

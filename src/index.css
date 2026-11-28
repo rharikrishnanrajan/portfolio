@@ -10,8 +10,8 @@
   --muted: 148 163 184;
   --accent: 79 126 255;
   --accent2: 199 210 254;
-  --theme-font-heading: "Inter Variable", system-ui, -apple-system, sans-serif;
-  --theme-font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --theme-font-heading: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --theme-font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
   color-scheme: dark;
 
   /* Motion tokens (A1) */
@@ -24,6 +24,15 @@
 
   /* Scroll progress (A4) */
   --scroll-progress: 0;
+
+  /* Type scale tokens (F5) — rem only */
+  --fs-label: 0.75rem;
+  --fs-small: 0.875rem;
+  --fs-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --fs-lead: clamp(1.125rem, 1.02rem + 0.5vw, 1.375rem);
+  --fs-h3: clamp(1.25rem, 1.12rem + 0.6vw, 1.625rem);
+  --fs-h2: clamp(2rem, 1.4rem + 2.6vw, 3.75rem);
+  --fs-display: clamp(2.75rem, 1.4rem + 6.5vw, 7rem);
 }
 
 :root[data-theme="light"] {
@@ -408,6 +417,76 @@ html.theme-transition *::after {
   border-radius: 4px;
 }
 
+/* ============================================================
+   IconButton (.icon-btn) — F1
+   ============================================================ */
+.icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;   /* 44px */
+  height: 2.75rem;  /* 44px */
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--border));
+  color: rgb(var(--muted));
+  flex-shrink: 0;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  border-color: rgb(var(--accent));
+  color: rgb(var(--accent));
+  transform: translateY(-2px);
+  outline: none;
+}
+.icon-btn:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+}
+.icon-btn:active {
+  transform: scale(0.97);
+}
+
+/* CSS-only tooltip (hover + focus-visible, hidden on coarse pointer devices) */
+@media (hover: hover) and (pointer: fine) {
+  .icon-btn::before {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: rgb(var(--surface));
+    border: 1px solid rgb(var(--border));
+    color: rgb(var(--muted));
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.6rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-out);
+    z-index: 60;
+  }
+  .icon-btn:hover::before,
+  .icon-btn:focus-visible::before {
+    opacity: 1;
+  }
+}
+
+/* Motion preference switch (F8) — data-motion="reduced" on <html> */
+html[data-motion="reduced"] .icon-btn {
+  transition: none !important;
+  transform: none !important;
+}
+
 /* Reduced motion: disable all keyframe animations and transitions (A11) */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
@@ -451,4 +530,140 @@ html.theme-transition *::after {
   .scroll-progress-bar {
     transition: transform 0.01ms;
   }
+  /* Spiral (F6) */
+  [data-spiral] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
+
+/* ============================================================
+   F8: data-motion="reduced" owner switch — mirrors prefers-reduced-motion
+   OS-level prefers-reduced-motion always wins via the @media block above.
+   ============================================================ */
+html[data-motion="reduced"] .animate-fade-in,
+html[data-motion="reduced"] .animate-fade-up,
+html[data-motion="reduced"] .animate-float,
+html[data-motion="reduced"] .animate-glow-pulse,
+html[data-motion="reduced"] .animate-shimmer,
+html[data-motion="reduced"] .animate-drawer-in {
+  animation: none !important;
+}
+html[data-motion="reduced"] .animate-fade-up {
+  opacity: 1;
+  transform: none;
+}
+html[data-motion="reduced"] .js .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+html[data-motion="reduced"] .card-interactive:hover,
+html[data-motion="reduced"] .card-interactive:focus-within {
+  transform: none;
+}
+html[data-motion="reduced"] .row-interactive:hover .link-icon {
+  transform: none;
+}
+html[data-motion="reduced"] .cover-wrapper:hover img {
+  transform: none;
+}
+html[data-motion="reduced"] .verified-outcome-shimmer::after {
+  animation: none;
+  opacity: 0;
+}
+html[data-motion="reduced"] [data-spiral] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* ============================================================
+   F6: Spiral 3D scroll — initial hidden state (JS-gated)
+   ============================================================ */
+.js [data-spiral] {
+  opacity: 0;
+  /* Full 3D transform applied inline by spiral.ts; starting state is hidden */
+  transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+  will-change: transform, opacity;
+}
+.js [data-spiral].spiral-settled {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+  transition: none;
+}
+
+/* ============================================================
+   F6: Decorative spiral background (aria-hidden, fixed, below content)
+   ============================================================ */
+.spiral-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.spiral-bg svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(100vw, 900px);
+  height: min(100vw, 900px);
+  opacity: 0.055;
+  transition: transform 0.1s linear;
+}
+
+/* F7: Animated underline for nav / footer links */
+.animated-underline {
+  position: relative;
+}
+.animated-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: rgb(var(--accent));
+  transition: width var(--dur-fast) var(--ease-out);
+}
+.animated-underline:hover::after,
+.animated-underline:focus-visible::after {
+  width: 100%;
+}
+
+/* F7: Section eyebrow slide-in (triggered when parent reveal fires) */
+.js .reveal-header .eyebrow {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  transition-delay: 0ms;
+}
+.js .reveal.is-visible .reveal-header .eyebrow,
+.js .reveal-header.is-visible .eyebrow {
+  opacity: 1;
+  transform: none;
+}
+.js .reveal-header h2 {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+  transition-delay: 80ms;
+}
+.js .reveal.is-visible .reveal-header h2,
+.js .reveal-header.is-visible h2 {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-underline::after { transition: none; }
+  .js .reveal-header .eyebrow,
+  .js .reveal-header h2 { opacity: 1; transform: none; transition: none; }
+}
+html[data-motion="reduced"] .animated-underline::after { transition: none; }
+html[data-motion="reduced"] .js .reveal-header .eyebrow,
+html[data-motion="reduced"] .js .reveal-header h2 { opacity: 1; transform: none; transition: none; }

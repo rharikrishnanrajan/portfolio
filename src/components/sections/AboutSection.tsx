@@ -1,5 +1,6 @@
 import { useContent } from '../../context/contentContext'
 import { useReveal } from '../../hooks/useReveal'
+import { useSpiral } from '../../hooks/useSpiral'
 import { parseAboutContent } from '../../lib/schemas'
 import type { SectionItem } from '../../types/content'
 
@@ -10,6 +11,7 @@ export interface AboutSectionProps {
 export function AboutSection({ section }: AboutSectionProps) {
   const { content } = useContent()
   const { ref, isVisible } = useReveal<HTMLElement>()
+  const spiralGridRef = useSpiral<HTMLDivElement>({ kind: 'block' })
   const aboutContent = parseAboutContent(section.content)
   const titleId = `section-title-${section.id}`
 
@@ -47,7 +49,7 @@ export function AboutSection({ section }: AboutSectionProps) {
           ) : null}
         </div>
 
-        <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
+        <div ref={spiralGridRef} data-spiral="block" className="grid gap-12 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-5 space-y-8">
             {content.overview_rows.length > 0 ? (
               <div className="card-interactive p-6 animate-fade-up" style={{ '--reveal-i': 0 }}>

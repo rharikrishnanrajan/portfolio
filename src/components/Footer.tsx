@@ -1,17 +1,10 @@
 import { useMemo, useState } from 'react'
-import { ArrowUpRight, FileDown, GitBranch, Globe, Mail, Phone } from 'lucide-react'
+import { Activity, FileDown, Mail, Phone } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useContent } from '../context/contentContext'
 import { safeUrl } from '../lib/safeUrl'
-
-function getDirectIcon(iconName: string | null) {
-  const key = (iconName ?? '').trim().toLowerCase()
-  if (key === 'github' || key === 'git') return GitBranch
-  if (key === 'mail' || key === 'email') return Mail
-  if (key === 'phone') return Phone
-  if (key === 'linkedin') return ArrowUpRight
-  return Globe
-}
+import { useMotionPreference } from '../hooks/useMotionPreference'
+import { BrandIcon } from './BrandIcon'
 
 export function Footer() {
   const { content } = useContent()
@@ -19,6 +12,7 @@ export function Footer() {
   const isHome = location.pathname === '/'
   const { settings, profile, sections, social_links: socialLinks } = content
   const { footer, hero } = settings
+  const { motionEnabled, toggle: toggleMotion } = useMotionPreference()
 
   const navSections = useMemo(
     () =>
@@ -86,7 +80,7 @@ export function Footer() {
                         {isHome ? (
                           <a
                             href={href}
-                            className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted hover:text-ink transition-colors animate-fade-up"
+                            className="animated-underline font-mono text-[11px] uppercase tracking-[0.2em] text-muted hover:text-ink transition-colors animate-fade-up"
                             style={{ '--reveal-i': idx }}
                           >
                             {label}
@@ -94,7 +88,7 @@ export function Footer() {
                         ) : (
                           <Link
                             to={href}
-                            className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted hover:text-ink transition-colors animate-fade-up"
+                            className="animated-underline font-mono text-[11px] uppercase tracking-[0.2em] text-muted hover:text-ink transition-colors animate-fade-up"
                             style={{ '--reveal-i': idx }}
                           >
                             {label}
@@ -125,7 +119,6 @@ export function Footer() {
               ) : null}
 
               {safeSocials.map((link, idx) => {
-                const IconComponent = getDirectIcon(link.icon)
                 return (
                   <li key={link.id}>
                     <a
@@ -135,7 +128,7 @@ export function Footer() {
                       className="inline-flex items-center gap-3 text-sm text-muted hover:text-ink transition-colors animate-fade-up row-interactive"
                       style={{ '--reveal-i': 2 + idx }}
                     >
-                      <IconComponent className="h-4 w-4 shrink-0 link-icon" aria-hidden="true" />
+                      <BrandIcon name={link.icon ?? ''} className="h-4 w-4 shrink-0 link-icon" />
                       <span>{link.label}</span>
                     </a>
                   </li>
@@ -176,10 +169,24 @@ export function Footer() {
         <div className="mt-14 pt-8 border-t border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-up" style={{ '--reveal-i': 3 }}>
           <p className="font-mono text-xs text-muted">{copyrightText}</p>
 
-          <p className="inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" aria-hidden="true" />
-            <span>{footer.status_label || 'SYSTEMS OPERATIONAL'}</span>
-          </p>
+          <div className="flex items-center gap-6">
+            {/* F8: Motion preference toggle */}
+            <button
+              type="button"
+              onClick={toggleMotion}
+              aria-pressed={motionEnabled}
+              aria-label={motionEnabled ? 'Disable animations (motion on)' : 'Enable animations (motion off)'}
+              className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted hover:text-ink border border-transparent hover:border-line px-2 py-1 transition-colors"
+            >
+              <Activity className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <span>Motion: {motionEnabled ? 'on' : 'off'}</span>
+            </button>
+
+            <p className="inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" aria-hidden="true" />
+              <span>{footer.status_label || 'SYSTEMS OPERATIONAL'}</span>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

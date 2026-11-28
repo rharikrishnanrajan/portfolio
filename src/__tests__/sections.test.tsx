@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { AppRoutes } from '../App'
 import { RegisteredSection } from '../components/sections/SectionRegistry'
 import { ProjectCaseStudy } from '../components/sections/ProjectCaseStudy'
+import { PublicationsSection } from '../components/sections/PublicationsSection'
+import { CertificationRow } from '../components/sections/CertificationRow'
 import { ProjectCover } from '../components/ProjectCover'
 import { ContentProvider } from '../context/ContentProvider'
 import { EMPTY_SITE_CONTENT } from '../lib/schemas'
@@ -651,16 +653,18 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
     function renderCaseStudy(overrides: Partial<SiteContent['projects'][number]>) {
       const base = makePortfolioContent().projects[0]
       return render(
-        <ProjectCaseStudy
-          project={{
-            ...base,
-            github_url: null,
-            live_url: null,
-            files: [],
-            ...overrides,
-          }}
-          index={0}
-        />,
+        <MemoryRouter>
+          <ProjectCaseStudy
+            project={{
+              ...base,
+              github_url: null,
+              live_url: null,
+              files: [],
+              ...overrides,
+            }}
+            index={0}
+          />
+        </MemoryRouter>,
       )
     }
 
@@ -672,10 +676,10 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       const links = screen.getAllByRole('link')
       expect(links).toHaveLength(1)
       expect(links[0].getAttribute('aria-label')).toBe('GitHub repository for Repo Only (opens in a new tab)')
-      expect(links[0].getAttribute('title')).toBe('GitHub repository for Repo Only (opens in a new tab)')
       expect(links[0].getAttribute('target')).toBe('_blank')
       expect(links[0].getAttribute('rel')).toBe('noopener noreferrer')
       expect(links[0].textContent?.trim()).toBe('')
+      expect(links[0].classList.contains('icon-btn')).toBe(true)
       expect(container.querySelector('svg[aria-hidden="true"]')).toBeTruthy()
     })
 
@@ -687,7 +691,6 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       const links = screen.getAllByRole('link')
       expect(links).toHaveLength(1)
       expect(links[0].getAttribute('aria-label')).toBe('Live demo of Live Only (opens in a new tab)')
-      expect(links[0].getAttribute('title')).toBe('Live demo of Live Only (opens in a new tab)')
       expect(links[0].getAttribute('target')).toBe('_blank')
       expect(links[0].getAttribute('rel')).toBe('noopener noreferrer')
       expect(links[0].textContent?.trim()).toBe('')
@@ -701,13 +704,12 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       const links = screen.getAllByRole('link')
       expect(links).toHaveLength(1)
       expect(links[0].getAttribute('aria-label')).toBe('Open document Spec.pdf for Doc Only (opens in a new tab)')
-      expect(links[0].getAttribute('title')).toBe('Open document Spec.pdf for Doc Only (opens in a new tab)')
       expect(links[0].getAttribute('target')).toBe('_blank')
       expect(links[0].getAttribute('rel')).toBe('noopener noreferrer')
       expect(links[0].textContent?.trim()).toBe('')
     })
 
-    it('renders all three button types in order with no visible text', () => {
+    it('renders all three button types in order (GitHub, documents, live demo) with no visible text', () => {
       renderCaseStudy({
         title: 'All Three',
         github_url: 'https://github.com/example/all',
@@ -717,8 +719,8 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       const links = screen.getAllByRole('link')
       expect(links).toHaveLength(3)
       expect(links[0].getAttribute('aria-label')).toBe('GitHub repository for All Three (opens in a new tab)')
-      expect(links[1].getAttribute('aria-label')).toBe('Live demo of All Three (opens in a new tab)')
-      expect(links[2].getAttribute('aria-label')).toBe('Open document Guide.pdf for All Three (opens in a new tab)')
+      expect(links[1].getAttribute('aria-label')).toBe('Open document Guide.pdf for All Three (opens in a new tab)')
+      expect(links[2].getAttribute('aria-label')).toBe('Live demo of All Three (opens in a new tab)')
       for (const link of links) {
         expect(link.textContent?.trim()).toBe('')
         expect(link.getAttribute('target')).toBe('_blank')
@@ -734,27 +736,27 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       expect(container.querySelector('[aria-hidden="true"]')).toBeNull()
     })
 
-    it('caps document buttons at 3 and shows non-interactive aria-hidden +N indicator', () => {
+    it('caps document buttons at 3 and links +N button to /projects archive section', () => {
       const files = ['One.pdf', 'Two.pdf', 'Three.pdf', 'Four.pdf', 'Five.pdf'].map((name) => ({
         name,
         url: `${VALID_DOC_BASE}/${name}`,
         path: `project-documents/proj-1/${name}`,
         type: 'application/pdf',
       }))
-      const { container } = renderCaseStudy({ title: 'Many Docs', files })
+      renderCaseStudy({ id: 'proj-overflow', title: 'Many Docs', files })
 
       const links = screen.getAllByRole('link')
-      expect(links).toHaveLength(3)
-      expect(links.map((l) => l.getAttribute('aria-label'))).toEqual([
+      expect(links).toHaveLength(4)
+      expect(links.slice(0, 3).map((l) => l.getAttribute('aria-label'))).toEqual([
         'Open document One.pdf for Many Docs (opens in a new tab)',
         'Open document Two.pdf for Many Docs (opens in a new tab)',
         'Open document Three.pdf for Many Docs (opens in a new tab)',
       ])
       expect(screen.queryByRole('link', { name: /Four\.pdf/ })).toBeNull()
 
-      const overflow = container.querySelector('span[aria-hidden="true"]')
-      expect(overflow?.textContent).toBe('+2')
-      expect(overflow?.tagName).toBe('SPAN')
+      const overflowLink = links[3]
+      expect(overflowLink.textContent).toBe('+2')
+      expect(overflowLink.getAttribute('href')).toBe('/projects#project-proj-overflow')
     })
 
     it('rejects hostile URLs for github, live, and document files', () => {
@@ -772,6 +774,128 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
         ],
       })
       expect(screen.queryAllByRole('link')).toHaveLength(0)
+    })
+  })
+
+  describe('CertificationRow PDF/verify button (F4)', () => {
+    it('renders PDF icon button when credential_url ends with .pdf', () => {
+      render(
+        <CertificationRow
+          index={0}
+          certification={{
+            id: 'cert-pdf',
+            title: 'AWS Solutions Architect',
+            issuer: 'Amazon Web Services',
+            start_date: '2025-01-01',
+            end_date: null,
+            credential_url: 'https://example.com/certs/aws.pdf',
+          }}
+        />,
+      )
+      const link = screen.getByRole('link')
+      expect(link.getAttribute('aria-label')).toBe('Open certificate PDF for AWS Solutions Architect (opens in a new tab)')
+      expect(link.getAttribute('target')).toBe('_blank')
+      expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+    })
+
+    it('renders verify icon button for non-PDF https credential_url', () => {
+      render(
+        <CertificationRow
+          index={1}
+          certification={{
+            id: 'cert-ext',
+            title: 'CKA',
+            issuer: 'CNCF',
+            start_date: '2025-02-01',
+            end_date: null,
+            credential_url: 'https://credly.com/badges/1234',
+          }}
+        />,
+      )
+      const link = screen.getByRole('link')
+      expect(link.getAttribute('aria-label')).toBe('Verify credential for CKA (opens in a new tab)')
+    })
+
+    it('rejects hostile credential_url and renders no button', () => {
+      render(
+        <CertificationRow
+          index={2}
+          certification={{
+            id: 'cert-bad',
+            title: 'Hostile Cert',
+            issuer: 'Test',
+            start_date: '2025-02-01',
+            end_date: null,
+            credential_url: 'javascript:alert(1)',
+          }}
+        />,
+      )
+      expect(screen.queryAllByRole('link')).toHaveLength(0)
+    })
+  })
+
+  describe('PublicationsSection (F3)', () => {
+    it('formats date as DD MON YYYY, shows badge, wraps long text, and filters hostile urls', async () => {
+      const pubContent: SiteContent = {
+        ...makePortfolioContent(),
+        publications: [
+          {
+            id: 'pub-1',
+            title: 'Zero-Downtime Blue/Green Deployments on ECS',
+            venue: 'IEEE Cloud Engineering Conference',
+            published_on: '2025-03-21',
+            summary: 'Detailed architecture paper on zero-downtime ECS deployments.',
+            reference: 'ISBN 978-1-2345-6789-0 · pp. 12-19 · Co-author: A. Dev',
+            url: 'https://ieeexplore.ieee.org/document/123456.pdf',
+          },
+          {
+            id: 'pub-2',
+            title: 'Hostile URL Paper',
+            venue: 'Local Symposium',
+            published_on: '2024-11-05',
+            summary: null,
+            reference: null,
+            url: 'javascript:alert(1)',
+          },
+        ],
+      }
+
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue(
+          new Response(JSON.stringify(pubContent), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        ),
+      )
+
+      render(
+        <ContentProvider>
+          <PublicationsSection
+            section={{
+              id: 'sec-pub',
+              slug: 'publications',
+              type: 'publications',
+              nav_label: 'Papers',
+              eyebrow: 'RESEARCH',
+              title: 'Publications',
+              subtitle: null,
+              content: {},
+              position: 6,
+              show_in_nav: false,
+            }}
+          />
+        </ContentProvider>,
+      )
+
+      expect(await screen.findByText('21 MAR 2025')).toBeTruthy()
+      expect(screen.getAllByText('PRESENTED & PUBLISHED').length).toBeGreaterThanOrEqual(1)
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(1)
+      expect(links[0].getAttribute('aria-label')).toBe(
+        'Open paper document for Zero-Downtime Blue/Green Deployments on ECS (opens in a new tab)',
+      )
     })
   })
 })
