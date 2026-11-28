@@ -7,7 +7,7 @@
 ## SPIRAL SCROLL progress
 
 - [x] S1: Config and pure math (`src/lib/spiral.ts`)
-- [ ] S2: Engine, hook, wrapper, and hash navigation safety (`src/lib/spiralEngine.ts`, `src/hooks/useSpiral.ts`, `src/components/SpiralBlock.tsx`, `src/lib/scroll.ts`)
+- [x] S2: Engine, hook, wrapper, and hash navigation safety (`src/lib/spiralEngine.ts`, `src/hooks/useSpiral.ts`, `src/components/SpiralBlock.tsx`, `src/lib/scroll.ts`)
 - [ ] S3: Apply to blocks and cards (SectionHeader, About, Skills, Projects, ProjectCover, Education, Certifications, Publications, Contact, Footer)
 - [ ] S4: Parallax layers (`src/components/Hero.tsx`, `src/components/ParallaxOrb.tsx`)
 - [ ] S5: Spiral background (`src/components/SpiralBackground.tsx`, `src/App.tsx`)
