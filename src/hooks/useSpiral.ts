@@ -3,7 +3,8 @@
  */
 
 import { useEffect, useRef } from 'react'
-import { registerSpiral, type SpiralKind } from '../lib/spiralEngine'
+import { motionEnabled } from '../lib/motionGate'
+import type { SpiralKind } from '../lib/spiralEngine'
 
 export type { SpiralKind }
 
@@ -21,8 +22,20 @@ export function useSpiral<T extends HTMLElement = HTMLElement>(
 
   useEffect(() => {
     const el = ref.current
-    if (!el) return
-    return registerSpiral(el, { kind, dir, depth })
+    if (!el || !motionEnabled()) return
+
+    let cancelled = false
+    let unregister: (() => void) | undefined
+
+    void import('../lib/spiralEngine').then(({ registerSpiral }) => {
+      if (cancelled) return
+      unregister = registerSpiral(el, { kind, dir, depth })
+    })
+
+    return () => {
+      cancelled = true
+      unregister?.()
+    }
   }, [depth, dir, kind])
 
   return ref

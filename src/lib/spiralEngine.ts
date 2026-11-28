@@ -10,6 +10,7 @@
  * - Excludes #contact form, nav, dialog, and form controls.
  */
 
+import { motionEnabled } from './motionGate'
 import {
   SPIRAL_CONFIG,
   clamp,
@@ -18,6 +19,8 @@ import {
   parallaxOffset,
   toTransform,
 } from './spiral'
+
+export { motionEnabled }
 
 export type SpiralKind = 'block' | 'card' | 'layer'
 
@@ -48,30 +51,6 @@ const EXCLUDED_SELECTORS = [
   'textarea',
   'select',
 ]
-
-/**
- * Returns true when 3D spiral motion is allowed:
- * - browser environment with requestAnimationFrame and IntersectionObserver
- * - prefers-reduced-motion is not "reduce"
- * - html[data-motion] is not "reduced"
- * - navigator.connection?.saveData is not true
- * - viewport width >= SPIRAL_CONFIG.minViewportWidth (768px)
- */
-export function motionEnabled(): boolean {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return false
-  if (typeof window.matchMedia === 'function') {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
-  }
-  if (document.documentElement.dataset.motion === 'reduced') return false
-  if ('connection' in navigator) {
-    const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection
-    if (conn?.saveData) return false
-  }
-  if (window.innerWidth < SPIRAL_CONFIG.minViewportWidth) return false
-  if (typeof IntersectionObserver === 'undefined') return false
-  if (typeof requestAnimationFrame === 'undefined') return false
-  return true
-}
 
 function isExcluded(el: HTMLElement): boolean {
   if (el.tagName === 'SECTION' && el.id) return true
@@ -544,4 +523,11 @@ export const spiralEngine = new SpiralEngine()
  */
 export function registerSpiral(el: HTMLElement, options: RegisterSpiralOptions = {}): () => void {
   return spiralEngine.register(el, options)
+}
+
+/**
+ * Resets the singleton spiralEngine state for unit tests.
+ */
+export function resetSpiralEngineForTests(): void {
+  spiralEngine.destroy()
 }

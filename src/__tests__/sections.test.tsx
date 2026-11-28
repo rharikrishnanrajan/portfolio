@@ -508,7 +508,7 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       expect(img.getAttribute('decoding')).toBe('async')
       // Wrapper should have aspect-[16/9] for cropped variant
       const wrapper = img.parentElement
-      expect(wrapper?.className).toContain('aspect-[16/9]')
+      expect(wrapper?.className).toContain('aspect-video')
       unmount()
     })
 
@@ -524,7 +524,7 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       expect(img.getAttribute('height')).toBeNull()
       expect(img.className).not.toContain('object-cover')
       expect(img.className).toContain('object-contain')
-      expect(img.className).toContain('max-h-[32rem]')
+      expect(img.className).toContain('max-h-128')
 
       // Wrapper should be w-full, not aspect-[16/9], starting with 16 / 9 placeholder ratio
       const wrapper = img.parentElement as HTMLElement
@@ -552,9 +552,9 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       expect(img.getAttribute('width')).toBe('1280')
       expect(img.getAttribute('height')).toBe('720')
       expect(img.className).toContain('object-cover')
-      // Wrapper should have aspect-[16/9]
+      // Wrapper should have aspect-video
       const wrapper = img.parentElement
-      expect(wrapper?.className).toContain('aspect-[16/9]')
+      expect(wrapper?.className).toContain('aspect-video')
     })
 
     it('natural variant wraps image in anchor with correct attributes', () => {
@@ -874,7 +874,7 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
       )
 
       render(
-        <ContentProvider>
+        <ContentProvider snapshotOverride={pubContent}>
           <PublicationsSection
             section={{
               id: 'sec-pub',

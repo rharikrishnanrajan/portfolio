@@ -18,8 +18,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react'
-import { SPIRAL_CONFIG } from '../lib/spiral'
-import { motionEnabled } from '../lib/spiralEngine'
+import { motionEnabled } from '../lib/motionGate'
 
 /** True only when the device has a fine pointer and supports hover. */
 function isHoverFine(): boolean {
@@ -41,6 +40,8 @@ export function useHoverTilt<T extends HTMLElement = HTMLElement>(): React.RefOb
     el.style.transform = `perspective(900px) rotateX(${p.rx.toFixed(2)}deg) rotateY(${p.ry.toFixed(2)}deg)`
   }, [])
 
+  const tiltMaxDegRef = useRef(6)
+
   const onPointerMove = useCallback((e: PointerEvent) => {
     if (!motionEnabled()) return
     const el = ref.current
@@ -50,7 +51,7 @@ export function useHoverTilt<T extends HTMLElement = HTMLElement>(): React.RefOb
     const cy = rect.top + rect.height / 2
     const dx = (e.clientX - cx) / (rect.width / 2)   // [-1, 1]
     const dy = (e.clientY - cy) / (rect.height / 2)  // [-1, 1]
-    const max = SPIRAL_CONFIG.tiltMaxDeg
+    const max = tiltMaxDegRef.current
     // rotateX: tilt "up" when cursor is below centre (positive dy → negative rx)
     // rotateY: tilt "right" when cursor is to the right (positive dx → positive ry)
     pending.current = { rx: -dy * max, ry: dx * max }
@@ -72,14 +73,25 @@ export function useHoverTilt<T extends HTMLElement = HTMLElement>(): React.RefOb
 
   useEffect(() => {
     const el = ref.current
-    if (!el || !isHoverFine()) return
+    if (!el || !isHoverFine() || !motionEnabled()) return
 
-    el.addEventListener('pointermove', onPointerMove, { passive: true })
-    el.addEventListener('pointerleave', onPointerLeave, { passive: true })
+    let cancelled = false
+    let attached = false
+
+    void import('../lib/spiral').then(({ SPIRAL_CONFIG }) => {
+      if (cancelled) return
+      tiltMaxDegRef.current = SPIRAL_CONFIG.tiltMaxDeg
+      attached = true
+      el.addEventListener('pointermove', onPointerMove, { passive: true })
+      el.addEventListener('pointerleave', onPointerLeave, { passive: true })
+    })
 
     return () => {
-      el.removeEventListener('pointermove', onPointerMove)
-      el.removeEventListener('pointerleave', onPointerLeave)
+      cancelled = true
+      if (attached) {
+        el.removeEventListener('pointermove', onPointerMove)
+        el.removeEventListener('pointerleave', onPointerLeave)
+      }
       if (rafId.current !== null) {
         cancelAnimationFrame(rafId.current)
         rafId.current = null

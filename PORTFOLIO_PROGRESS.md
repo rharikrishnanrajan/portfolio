@@ -1,6 +1,21 @@
 # Portfolio Build — Progress Log
 
-> Last updated: 2026-11-28 (Spiral 3D Scroll + Parallax S1–S10)
+> Last updated: 2026-11-28 (Test Fixes + Bundle Reduction)
+
+---
+
+## Test Fixes & Bundle Reduction (2026-11-28)
+
+### Part 1 — Test Decisions
+- `clamp(NaN, min, max)` in `src/lib/spiral.ts`: verified `if (!Number.isFinite(value)) return min` already returns `min` for `NaN`/`Infinity`.
+- `spiralEngine` tests (`src/__tests__/spiral.test.ts`, `src/lib/spiralEngine.ts`, `src/test/setup.ts`): **Test/setup issue** — module-level `spiralEngine` singleton state was not reset between tests, and `requestAnimationFrame`/`cancelAnimationFrame` were not mocked in `src/test/setup.ts`. Exported `resetSpiralEngineForTests()` in `src/lib/spiralEngine.ts`, called it in `beforeEach` in `src/__tests__/spiral.test.ts`, and added `requestAnimationFrame`/`cancelAnimationFrame` fallbacks in `src/test/setup.ts`.
+- `ProjectCover` tests (`src/__tests__/sections.test.tsx`): **Test issue** — Tailwind v4 canonicalized `max-h-[32rem]` to `max-h-128` and `aspect-[16/9]` to `aspect-video` in `src/components/ProjectCover.tsx`, while tests still asserted the old class strings. Updated the test assertions to `max-h-128` and `aspect-video`.
+- `PublicationsSection (F3)` test (`src/__tests__/sections.test.tsx`): **Test issue** — `<ContentProvider>` was rendered without `snapshotOverride={pubContent}`, causing it to use `getSnapshotContent()` instead of the test fixture. Passed `snapshotOverride={pubContent}`.
+
+### Part 2 — Bundle Reduction
+- Extracted `motionEnabled()` into `src/lib/motionGate.ts` (zero-dependency gate).
+- Lazy-loaded `SpiralBackground` (`React.lazy` + `Suspense`), `spiralEngine` (`import('./lib/spiralEngine')` in `App.tsx`, `useSpiral.ts`, `useMotionPreference.ts`), and `SPIRAL_CONFIG` (`import('../lib/spiral')` in `useHoverTilt.ts`) only after first render and only when `motionEnabled()` is true.
+- Verified all `react-icons` imports are named imports from `'react-icons/fa6'` (`BrandIcon.tsx` only) and all `lucide-react` imports are named imports with no duplicate icon sets.
 
 ---
 

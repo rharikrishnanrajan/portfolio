@@ -54,3 +54,12 @@ Object.defineProperty(window, 'ResizeObserver', {
   writable: true,
   value: MockResizeObserver,
 })
+
+if (typeof window.requestAnimationFrame === 'undefined') {
+  window.requestAnimationFrame = vi.fn((cb: FrameRequestCallback) => {
+    return window.setTimeout(() => cb(performance.now()), 16)
+  })
+  window.cancelAnimationFrame = vi.fn((id: number) => {
+    window.clearTimeout(id)
+  })
+}

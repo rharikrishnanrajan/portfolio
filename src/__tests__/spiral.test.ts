@@ -20,7 +20,7 @@ import {
   spiralPath,
   SPIRAL_CONFIG,
 } from '../lib/spiral'
-import { motionEnabled, spiralEngine } from '../lib/spiralEngine'
+import { motionEnabled, spiralEngine, resetSpiralEngineForTests } from '../lib/spiralEngine'
 
 // ============================================================
 // S1 pure math
@@ -269,6 +269,7 @@ describe('motionEnabled', () => {
 
 describe('spiralEngine registration', () => {
   beforeEach(() => {
+    resetSpiralEngineForTests()
     document.body.innerHTML = ''
     document.documentElement.removeAttribute('data-motion')
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1280 })

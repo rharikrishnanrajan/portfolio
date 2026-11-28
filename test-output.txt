@@ -1,0 +1,345 @@
+﻿
+> portfolio-site@0.0.0 pretest
+> node scripts/snapshot.mjs
+
+[snapshot] Wrote snapshot (version 86).
+
+> portfolio-site@0.0.0 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.1.1 [39m[90mD:/portfolio/portfolio-site[39m
+
+ [32mΓ£ô[39m src/__tests__/supabase.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/safeUrl.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [31mΓ¥»[39m src/__tests__/spiral.test.ts [2m([22m[2m41 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 63[2mms[22m[39m
+   [31mΓ¥»[39m clamp [2m(2)[22m
+     [32mΓ£ô[39m clamps within range[32m 4[2mms[22m[39m
+[31m     [31m├ù[31m returns min for non-finite input[39m[32m 11[2mms[22m[39m
+   [32mΓ£ô[39m easeOutCubic [2m(3)[22m
+     [32mΓ£ô[39m maps 0 to 0 and 1 to 1[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m is monotonically increasing on [0,1][32m 1[2mms[22m[39m
+     [32mΓ£ô[39m clamps inputs outside [0,1][32m 0[2mms[22m[39m
+   [32mΓ£ô[39m entryProgress [2m(3)[22m
+     [32mΓ£ô[39m returns 1 for zero or negative viewport height[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m returns 0 when element top is at viewport bottom (fully below)[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m returns >= 0.999 when element top is well above 55% of viewport[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m computeSpiral [2m(5)[22m
+     [32mΓ£ô[39m e=0 gives full offsets and opacity 0[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m e=1 with no exit gives settled zeroes and opacity 1[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m exit values stay within configured limits[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m direction alternates the sign of tx and ry in entry[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m opacity is monotonically non-decreasing with e (no exit)[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m toTransform [2m(3)[22m
+     [32mΓ£ô[39m returns "none" when e >= 0.999 and exitAmount === 0[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m returns a perspective transform string when not settled[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m returns a transform string (not "none") when exitAmount > 0[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m parallaxOffset [2m(4)[22m
+     [32mΓ£ô[39m returns 0 for non-finite inputs[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m is clamped to ┬▒maxPx[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m returns 0 when element center equals viewport center[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m returns a positive offset when element is above viewport center[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m spiralPath [2m(4)[22m
+     [32mΓ£ô[39m returns a non-empty string with the requested number of arms[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m contains no NaN in the path[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m handles invalid arguments gracefully (uses defaults)[32m 3[2mms[22m[39m
+     [32mΓ£ô[39m produces a 1-arm path when arms=1[32m 1[2mms[22m[39m
+   [31mΓ¥»[39m motionEnabled [2m(6)[22m
+     [32mΓ£ô[39m returns false when prefers-reduced-motion matches[32m 3[2mms[22m[39m
+     [32mΓ£ô[39m returns false when data-motion="reduced" is set[32m 4[2mms[22m[39m
+     [32mΓ£ô[39m returns false when viewport width < minViewportWidth[32m 1[2mms[22m[39m
+[31m     [31m├ù[31m returns false when IntersectionObserver is missing[39m[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m returns false when requestAnimationFrame is missing[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m returns true with all gates open[32m 1[2mms[22m[39m
+   [31mΓ¥»[39m spiralEngine registration [2m(8)[22m
+[31m     [31m├ù[31m unregister removes element from transform tracking[39m[32m 5[2mms[22m[39m
+[31m     [31m├ù[31m double registration does not duplicate[39m[32m 2[2mms[22m[39m
+[31m     [31m├ù[31m section elements with IDs are excluded (never get transform)[39m[32m 1[2mms[22m[39m
+[31m     [31m├ù[31m contact form container is never transformed[39m[32m 1[2mms[22m[39m
+[31m     [31m├ù[31m focusin inside a registered element settles it immediately[39m[32m 1[2mms[22m[39m
+[31m     [31m├ù[31m registerBackground cleans up on unregister[39m[32m 1[2mms[22m[39m
+[31m     [31m├ù[31m when motion is disabled, all elements are reset to no transform[39m[32m 1[2mms[22m[39m
+[31m     [31m├ù[31m destroy removes scroll listener[39m[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m spiralPath for SpiralBackground [2m(1)[22m
+     [32mΓ£ô[39m generates path with 3 arms and no NaN (as used by SpiralBackground)[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m useHoverTilt no-op check [2m(1)[22m
+     [32mΓ£ô[39m respects motionEnabled() returning false[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m useMotionPreference storage validation [2m(1)[22m
+     [32mΓ£ô[39m only accepts "on" or "off" from localStorage[32m 2[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/contrast.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/dates.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/schemas.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/content.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+node.exe : [90mstderr[2m | src/__tests__/content.test.tsx[2m > 
+[22m[2mErrorBoundary and StatusViews[2m > [22m[2mcatches render errors and hides 
+raw error messages
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Harikrishanan\AppData\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([90mstderr[2m... error messages:String)  
+   [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[22m[39mError: SENSITIVE_DB_TOKEN_LEAK
+    at Bomb (D:/portfolio/portfolio-site/src/__tests__/content.test.tsx:128:13)
+    at Object.react_stack_bottom_frame [90m(D:\portfolio\portfolio-site\[39mnode_modul
+es\[4mreact-dom[24m\cjs\react-dom-client.development.js:28571:20[90m)[39m
+    at renderWithHooks [90m(D:\portfolio\portfolio-site\[39mnode_modules\[4mreact-dom
+[24m\cjs\react-dom-client.development.js:8030:22[90m)[39m
+    at updateFunctionComponent [90m(D:\portfolio\portfolio-site\[39mnode_modules\[4mr
+eact-dom[24m\cjs\react-dom-client.development.js:10569:19[90m)[39m
+    at beginWork [90m(D:\portfolio\portfolio-site\[39mnode_modules\[4mreact-dom[24m\
+cjs\react-dom-client.development.js:12205:18[90m)[39m
+    at runWithFiberInDEV [90m(D:\portfolio\portfolio-site\[39mnode_modules\[4mreact-d
+om[24m\cjs\react-dom-client.development.js:1048:13[90m)[39m
+    at performUnitOfWork [90m(D:\portfolio\portfolio-site\[39mnode_modules\[4mreact-d
+om[24m\cjs\react-dom-client.development.js:19176:22[90m)[39m
+    at workLoopSync [90m(D:\portfolio\portfolio-site\[39mnode_modules\[4mreact-dom[2
+4m\cjs\react-dom-client.development.js:19004:41[90m)[39m
+    at renderRootSync [90m(D:\portfolio\portfolio-site\[39mnode_modules\[4mreact-dom
+[24m\cjs\react-dom-client.development.js:18985:11[90m)[39m
+    at performWorkOnRoot [90m(D:\portfolio\portfolio-site\[39mnode_modules\[4mreact-d
+om[24m\cjs\react-dom-client.development.js:18094:35[90m)[39m {
+  [stack]: [36m[Getter/Setter][39m,
+  [message]: [32m'SENSITIVE_DB_TOKEN_LEAK'[39m
+}
+
+The above error occurred in the <Bomb> component.
+
+React will try to recreate this component tree from scratch using the error boundary 
+you provided, ErrorBoundary.
+
+
+ [32mΓ£ô[39m src/__tests__/motion.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 374[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/content.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[33m 511[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/contact.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 1049[2mms[22m[39m
+   [32mΓ£ô[39m ContactSection security, validation, and cooldown [2m(5)[22m
+     [33m[2mΓ£ô[22m[39m renders contact prefix number and filters unsafe social links[33m 370[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/color.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/typography.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [31mΓ¥»[39m src/__tests__/sections.test.tsx [2m([22m[2m33 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 1881[2mms[22m[39m
+   [31mΓ¥»[39m Phase 2 & 3 portfolio sections and routes [2m(33)[22m
+     [33m[2mΓ£ô[22m[39m renders hero, about, skills, featured projects, education, featured certifications, and publications with URL sanitization[33m 845[2mms[22m[39m
+     [33m[2mΓ£ô[22m[39m renders /projects archive, /certifications archive, and 404 route[33m 749[2mms[22m[39m
+     [31mΓ¥»[39m ProjectCover component [2m(17)[22m
+[31m       [31m├ù[31m renders with a valid Supabase storage URL (cropped variant default)[39m[32m 10[2mms[22m[39m
+       [32mΓ£ô[39m does not render for javascript: URLs[32m 2[2mms[22m[39m
+       [32mΓ£ô[39m does not render for data: URLs[32m 1[2mms[22m[39m
+       [32mΓ£ô[39m does not render for http: URLs[32m 1[2mms[22m[39m
+       [32mΓ£ô[39m does not render for another host[32m 1[2mms[22m[39m
+       [32mΓ£ô[39m does not render for path outside /storage/v1/object/public/[32m 1[2mms[22m[39m
+       [32mΓ£ô[39m does not render for null cover_url[32m 1[2mms[22m[39m
+       [32mΓ£ô[39m does not render for empty string cover_url[32m 1[2mms[22m[39m
+       [32mΓ£ô[39m removes the box on load error[32m 5[2mms[22m[39m
+       [32mΓ£ô[39m has correct alt text[32m 3[2mms[22m[39m
+       [32mΓ£ô[39m has lazy loading and async decoding attributes[32m 5[2mms[22m[39m
+       [32mΓ£ô[39m has explicit width and height attributes[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m renders on the archive page with the cropped variant[39m[32m 15[2mms[22m[39m
+[31m       [31m├ù[31m renders with natural variant: no object-fit cover, no fixed aspect ratio before and after load[39m[32m 7[2mms[22m[39m
+[31m       [31m├ù[31m renders cropped variant with explicit dimensions and object-fit cover[39m[32m 3[2mms[22m[39m
+       [32mΓ£ô[39m natural variant wraps image in anchor with correct attributes[32m 3[2mms[22m[39m
+       [32mΓ£ô[39m cropped variant does not wrap image in anchor[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m ProjectCaseStudy cover placement [2m(2)[22m
+       [32mΓ£ô[39m renders cover in left column (not right column) on home page[32m 26[2mms[22m[39m
+       [32mΓ£ô[39m cover appears after tagline in left column[32m 34[2mms[22m[39m
+     [32mΓ£ô[39m toggles light/dark theme from Navbar and ignores unknown section types[32m 62[2mms[22m[39m
+     [32mΓ£ô[39m ProjectCaseStudy action buttons [2m(7)[22m
+       [32mΓ£ô[39m renders repo only with icon-only link, matching title, target and rel[32m 9[2mms[22m[39m
+       [32mΓ£ô[39m renders live demo only with icon-only link[32m 6[2mms[22m[39m
+       [32mΓ£ô[39m renders document only with icon-only link[32m 8[2mms[22m[39m
+       [32mΓ£ô[39m renders all three button types in order (GitHub, documents, live demo) with no visible text[32m 20[2mms[22m[39m
+       [32mΓ£ô[39m renders no button row when project has no valid links or files[32m 6[2mms[22m[39m
+       [32mΓ£ô[39m caps document buttons at 3 and links +N button to /projects archive section[32m 11[2mms[22m[39m
+       [32mΓ£ô[39m rejects hostile URLs for github, live, and document files[32m 2[2mms[22m[39m
+     [32mΓ£ô[39m CertificationRow PDF/verify button (F4) [2m(3)[22m
+       [32mΓ£ô[39m renders PDF icon button when credential_url ends with .pdf[32m 4[2mms[22m[39m
+       [32mΓ£ô[39m renders verify icon button for non-PDF https credential_url[32m 4[2mms[22m[39m
+       [32mΓ£ô[39m rejects hostile credential_url and renders no button[32m 2[2mms[22m[39m
+     [32mΓ£ô[39m PublicationsSection (F3) [2m(1)[22m
+       [32mΓ£ô[39m formats date as DD MON YYYY, shows badge, wraps long text, and filters hostile urls[32m 25[2mms[22m[39m
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m[1m[41m Failed Tests 14 
+[49m[22m[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/sections.test.tsx[2m > [22mPhase 2 & 3 
+portfolio sections and routes[2m > [22mProjectCover component[2m > [22mrenders with 
+a valid Supabase storage URL (cropped variant default)
+[31m[1mAssertionError[22m: expected 'cover-wrapper hover-tilt-card relativΓÇª' to 
+contain 'aspect-[16/9]'[39m
+
+Expected: [32m"aspect-[16/9]"[39m
+Received: [31m"cover-wrapper hover-tilt-card relative overflow-hidden border 
+border-line bg-surface aspect-video"[39m
+
+[36m [2mΓ¥»[22m src/__tests__/sections.test.tsx:[2m426:34[22m[39m
+    [90m424|[39m       [90m// Wrapper has correct styling[39m
+    [90m425|[39m       [35mconst[39m wrapper [33m=[39m img[33m.[39mparentElement
+    [90m426|[39m       [34mexpect[39m(wrapper[33m?.[39mclassName)[33m.[39m[34mt
+oContain[39m([32m'aspect-[16/9]'[39m)
+    [90m   |[39m                                  [31m^[39m
+    [90m427|[39m       [34mexpect[39m(wrapper[33m?.[39mclassName)[33m.[39m[34mt
+oContain[39m([32m'overflow-hidden'[39m)
+    [90m428|[39m       [34mexpect[39m(wrapper[33m?.[39mclassName)[33m.[39m[34mt
+oContain[39m([32m'border'[39m)
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/7]ΓÄ
+»[22m[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/sections.test.tsx[2m > [22mPhase 2 & 3 
+portfolio sections and routes[2m > [22mProjectCover component[2m > [22mrenders on 
+the archive page with the cropped variant
+[31m[1mAssertionError[22m: expected 'cover-wrapper hover-tilt-card relativΓÇª' to 
+contain 'aspect-[16/9]'[39m
+
+Expected: [32m"aspect-[16/9]"[39m
+Received: [31m"cover-wrapper hover-tilt-card relative overflow-hidden border 
+border-line bg-surface aspect-video"[39m
+
+[36m [2mΓ¥»[22m src/__tests__/sections.test.tsx:[2m511:34[22m[39m
+    [90m509|[39m       [90m// Wrapper should have aspect-[16/9] for cropped 
+variant[39m
+    [90m510|[39m       [35mconst[39m wrapper [33m=[39m img[33m.[39mparentElement
+    [90m511|[39m       [34mexpect[39m(wrapper[33m?.[39mclassName)[33m.[39m[34mt
+oContain[39m([32m'aspect-[16/9]'[39m)
+    [90m   |[39m                                  [31m^[39m
+    [90m512|[39m       [34munmount[39m()
+    [90m513|[39m     })
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/7]ΓÄ
+»[22m[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/sections.test.tsx[2m > [22mPhase 2 & 3 
+portfolio sections and routes[2m > [22mProjectCover component[2m > [22mrenders with 
+natural variant: no object-fit cover, no fixed aspect ratio before and after load
+[31m[1mAssertionError[22m: expected '\n          transition-opacity duratiΓÇª' to 
+contain 'max-h-[32rem]'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- max-h-[32rem][39m
+[31m+[39m
+[31m+           transition-opacity duration-300[39m
+[31m+           opacity-0[39m
+[31m+           block w-full h-auto max-h-128 object-contain bg-surface mx-auto[39m
+[31m+         [39m
+
+[36m [2mΓ¥»[22m src/__tests__/sections.test.tsx:[2m527:29[22m[39m
+    [90m525|[39m       [34mexpect[39m(img[33m.[39mclassName)[33m.[39mnot[33m.[
+39m[34mtoContain[39m([32m'object-cover'[39m)
+    [90m526|[39m       [34mexpect[39m(img[33m.[39mclassName)[33m.[39m[34mtoCont
+ain[39m([32m'object-contain'[39m)
+    [90m527|[39m       [34mexpect[39m(img[33m.[39mclassName)[33m.[39m[34mtoCont
+ain[39m([32m'max-h-[32rem]'[39m)
+    [90m   |[39m                             [31m^[39m
+    [90m528|[39m
+    [90m529|[39m       // Wrapper should be w-full, not aspect-[16/9], starting with 
+16ΓÇª
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/7]ΓÄ
+»[22m[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/sections.test.tsx[2m > [22mPhase 2 & 3 
+portfolio sections and routes[2m > [22mProjectCover component[2m > [22mrenders 
+cropped variant with explicit dimensions and object-fit cover
+[31m[1mAssertionError[22m: expected 'cover-wrapper hover-tilt-card relativΓÇª' to 
+contain 'aspect-[16/9]'[39m
+
+Expected: [32m"aspect-[16/9]"[39m
+Received: [31m"cover-wrapper hover-tilt-card relative overflow-hidden border 
+border-line bg-surface aspect-video"[39m
+
+[36m [2mΓ¥»[22m src/__tests__/sections.test.tsx:[2m557:34[22m[39m
+    [90m555|[39m       [90m// Wrapper should have aspect-[16/9][39m
+    [90m556|[39m       [35mconst[39m wrapper [33m=[39m img[33m.[39mparentElement
+    [90m557|[39m       [34mexpect[39m(wrapper[33m?.[39mclassName)[33m.[39m[34mt
+oContain[39m([32m'aspect-[16/9]'[39m)
+    [90m   |[39m                                  [31m^[39m
+    [90m558|[39m     })
+    [90m559|[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/7]ΓÄ
+»[22m[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mclamp[2m > 
+[22mreturns min for non-finite input
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2mΓ¥»[22m src/__tests__/spiral.test.ts:[2m37:35[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[31m14 failed[39m[22m[2m | [22m[1m[32m122 passed[39m[22m[90m (136)[39m
+[2m   Start at [22m 19:26:39
+[2m   Duration [22m 7.52s[2m (environment 79%, import 11%, tests 7%, transform 2%, worker 1%)[22m
+
+[2mEnvironment [22m [33mjsdom was created 13 times[39m[2m ┬╖ 44.98s total, 79% of tracked time[22m
+[2m            [22m [2mcreate it once per worker with [22m[33mpool: 'vmThreads'[39m[2m (keeps per-file isolation) or [22m[33misolate: false[39m[2m (shares it across files)[22m
+[2m            [22m [2mlearn more: https://vitest.dev/guide/improving-performance#test-environments[22m
+
+    [90m 35|[39m   [34mit[39m([32m'returns min for non-finite 
+input'[39m[33m,[39m () [33m=>[39m {
+    [90m 36|[39m     [34mexpect[39m([34mclamp[39m([33mNaN[39m[33m,[39m 
+[34m0[39m[33m,[39m [34m1[39m))[33m.[39m[34mtoBe[39m([34m0[39m)
+    [90m 37|[39m     [34mexpect[39m([34mclamp[39m([33mInfinity[39m[33m,[39m 
+[34m0[39m[33m,[39m [34m1[39m))[33m.[39m[34mtoBe[39m([34m1[39m)
+    [90m   |[39m                                   [31m^[39m
+    [90m 38|[39m   })
+    [90m 39|[39m })
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/7]ΓÄ
+»[22m[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mmotionEnabled[2m > 
+[22mreturns false when IntersectionObserver is missing
+[31m[1mTypeError[22m: Cannot delete property 'IntersectionObserver' of #<Object>[39m
+[36m [2mΓ¥»[22m src/__tests__/spiral.test.ts:[2m248:5[22m[39m
+    [90m246|[39m     [35mconst[39m original [33m=[39m 
+globalThis[33m.[39m[33mIntersectionObserver[39m
+    [90m247|[39m     [90m// @ts-expect-error intentionally deleting for test[39m
+    [90m248|[39m     [35mdelete[39m 
+globalThis[33m.[39m[33mIntersectionObserver[39m
+    [90m   |[39m     [31m^[39m
+    [90m249|[39m     
+[34mexpect[39m([34mmotionEnabled[39m())[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m250|[39m     globalThis[33m.[39m[33mIntersectionObserver[39m [33m=[39m 
+original
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/7]ΓÄ
+»[22m[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mspiralEngine 
+registration[2m > [22munregister removes element from transform tracking
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mspiralEngine 
+registration[2m > [22mdouble registration does not duplicate
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mspiralEngine 
+registration[2m > [22msection elements with IDs are excluded (never get transform)
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mspiralEngine 
+registration[2m > [22mcontact form container is never transformed
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mspiralEngine 
+registration[2m > [22mfocusin inside a registered element settles it immediately
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mspiralEngine 
+registration[2m > [22mregisterBackground cleans up on unregister
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mspiralEngine 
+registration[2m > [22mwhen motion is disabled, all elements are reset to no transform
+[41m[1m FAIL [22m[49m src/__tests__/spiral.test.ts[2m > [22mspiralEngine 
+registration[2m > [22mdestroy removes scroll listener
+[31m[1mTypeError[22m: Cannot redefine property: IntersectionObserver[39m
+[36m [2mΓ¥»[22m src/__tests__/spiral.test.ts:[2m283:8[22m[39m
+    [90m281|[39m     })))
+    [90m282|[39m     [90m// Minimal IntersectionObserver mock[39m
+    [90m283|[39m     
+vi[33m.[39m[34mstubGlobal[39m([32m'IntersectionObserver'[39m[33m,[39m 
+[35mclass[39m {
+    [90m   |[39m        [31m^[39m
+    [90m284|[39m       [34mobserve[39m() {}
+    [90m285|[39m       [34munobserve[39m() {}
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/7]ΓÄ
+»[22m[39m
+
