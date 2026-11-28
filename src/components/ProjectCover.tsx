@@ -79,7 +79,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
       {/* Shimmer placeholder - 16:9 for natural variant until loaded */}
       {!isLoaded && (
         <div
-          className="absolute inset-0 animate-shimmer bg-gradient-to-r from-surface via-line/20 to-surface"
+          className="absolute inset-0 animate-shimmer bg-linear-to-r from-surface via-line/20 to-surface"
           aria-hidden="true"
         />
       )}
@@ -98,7 +98,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
           transition-opacity duration-300
           ${isLoaded ? 'opacity-100' : 'opacity-0'}
           ${isNatural
-            ? 'block w-full h-auto max-h-[32rem] object-contain bg-surface mx-auto'
+            ? 'block w-full h-auto max-h-128 object-contain bg-surface mx-auto'
             : 'h-full w-full object-cover transition-transform duration-700 ease-out'
           }
         `}
@@ -118,7 +118,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
         <div
           ref={naturalWrapperRef}
           style={{ aspectRatio: '16 / 9' }}
-          className="relative w-full box-border max-h-[32rem] overflow-hidden border border-line bg-surface transition-colors duration-200 group-hover:border-accent"
+          className="relative w-full box-border max-h-128 overflow-hidden border border-line bg-surface transition-colors duration-200 group-hover:border-accent"
         >
           {imageContent}
         </div>
@@ -129,7 +129,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
   return (
     <div
       ref={croppedTiltRef}
-      className={`cover-wrapper hover-tilt-card relative overflow-hidden border border-line bg-surface aspect-[16/9] ${className}`.trim()}
+      className={`cover-wrapper hover-tilt-card relative overflow-hidden border border-line bg-surface aspect-video ${className}`.trim()}
     >
       {imageContent}
     </div>
