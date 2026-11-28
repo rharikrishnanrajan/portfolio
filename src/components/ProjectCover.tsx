@@ -117,6 +117,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
       >
         <div
           ref={naturalWrapperRef}
+          data-variant="natural"
           style={{ aspectRatio: '16 / 9' }}
           className="relative w-full box-border max-h-128 overflow-hidden border border-line bg-surface transition-colors duration-200 group-hover:border-accent"
         >
@@ -129,6 +130,7 @@ export function ProjectCover({ project, variant = 'cropped', className = '' }: P
   return (
     <div
       ref={croppedTiltRef}
+      data-variant="cropped"
       className={`cover-wrapper hover-tilt-card relative overflow-hidden border border-line bg-surface aspect-video ${className}`.trim()}
     >
       {imageContent}

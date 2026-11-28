@@ -6,10 +6,14 @@
 
 ## Test Fixes & Bundle Reduction (2026-11-28)
 
+### Part 0 — Build Break & Lint Warnings
+- Extracted `<SpiralRuntime />` (`src/components/SpiralRuntime.tsx`) to own `ready` state, `spiralEngine.init()`, and lazy `<SpiralBackground />`, calling `setReady(true)` only inside the dynamic `import('../lib/spiralEngine')` promise callback (never synchronously in `useEffect`). Removed `spiralReady` and the spiral `useEffect` from `src/App.tsx`, resolving `TS6133`, `TS2304`, and `react(set-state-in-effect)`.
+
 ### Part 1 — Test Decisions
 - `clamp(NaN, min, max)` in `src/lib/spiral.ts`: verified `if (!Number.isFinite(value)) return min` already returns `min` for `NaN`/`Infinity`.
+- `motionEnabled returns false when IntersectionObserver is missing` (`src/__tests__/spiral.test.ts`): **Test issue** — `delete globalThis.IntersectionObserver` does not remove a non-configurable global stub; replaced with `vi.stubGlobal('IntersectionObserver', undefined)` + `vi.unstubAllGlobals()`.
 - `spiralEngine` tests (`src/__tests__/spiral.test.ts`, `src/lib/spiralEngine.ts`, `src/test/setup.ts`): **Test/setup issue** — module-level `spiralEngine` singleton state was not reset between tests, and `requestAnimationFrame`/`cancelAnimationFrame` were not mocked in `src/test/setup.ts`. Exported `resetSpiralEngineForTests()` in `src/lib/spiralEngine.ts`, called it in `beforeEach` in `src/__tests__/spiral.test.ts`, and added `requestAnimationFrame`/`cancelAnimationFrame` fallbacks in `src/test/setup.ts`.
-- `ProjectCover` tests (`src/__tests__/sections.test.tsx`): **Test issue** — Tailwind v4 canonicalized `max-h-[32rem]` to `max-h-128` and `aspect-[16/9]` to `aspect-video` in `src/components/ProjectCover.tsx`, while tests still asserted the old class strings. Updated the test assertions to `max-h-128` and `aspect-video`.
+- `ProjectCover` tests (`src/components/ProjectCover.tsx`, `src/__tests__/sections.test.tsx`): **Test issue** — Tailwind v4 canonicalized `max-h-[32rem]` to `max-h-128` and `aspect-[16/9]` to `aspect-video`, which tests asserted. Added `data-variant={variant}` to `ProjectCover` wrappers and updated tests to assert `data-variant` instead of Tailwind class names.
 - `PublicationsSection (F3)` test (`src/__tests__/sections.test.tsx`): **Test issue** — `<ContentProvider>` was rendered without `snapshotOverride={pubContent}`, causing it to use `getSnapshotContent()` instead of the test fixture. Passed `snapshotOverride={pubContent}`.
 
 ### Part 2 — Bundle Reduction

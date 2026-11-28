@@ -4,17 +4,13 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { Footer } from './components/Footer'
 import { Navbar } from './components/Navbar'
 import { ContentUpdatedPill } from './components/ContentUpdatedPill'
+import { SpiralRuntime } from './components/SpiralRuntime'
 import { EmptyView, LoadingView, UnavailableView } from './components/StatusViews'
 import { ContentProvider } from './context/ContentProvider'
 import { useContent } from './context/contentContext'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PortfolioHomePage } from './pages/PortfolioHomePage'
 import { initScrollProgress, BACK_TO_TOP_THRESHOLD } from './lib/scroll'
-import { motionEnabled } from './lib/motionGate'
-
-const SpiralBackground = lazy(() =>
-  import('./components/SpiralBackground').then((m) => ({ default: m.SpiralBackground })),
-)
 
 const ProjectsArchivePage = lazy(() => import('./pages/ProjectsArchivePage'))
 const CertificationsArchivePage = lazy(() => import('./pages/CertificationsArchivePage'))
@@ -59,26 +55,7 @@ export function ScrollProgressAndBackToTop() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.hash])
 
-  const [spiralReady, setSpiralReady] = useState(false)
-
-  // F6: Init spiral engine on mount only when motion is enabled, destroy on unmount
-  useEffect(() => {
-    if (!motionEnabled()) return
-    setSpiralReady(true)
-    let cancelled = false
-    let cleanup: (() => void) | undefined
-
-    void import('./lib/spiralEngine').then(({ spiralEngine }) => {
-      if (cancelled) return
-      spiralEngine.init()
-      cleanup = () => spiralEngine.destroy()
-    })
-
-    return () => {
-      cancelled = true
-      cleanup?.()
-    }
-  }, [])
+  // F6: Smooth scroll to top on button click
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: shouldUseSmoothScroll() ? 'smooth' : 'auto' })
@@ -140,11 +117,7 @@ export function AppRoutes() {
       </a>
 
       {/* S5: Decorative spiral background — aria-hidden, fixed, below content, engine-driven */}
-      {spiralReady ? (
-        <Suspense fallback={null}>
-          <SpiralBackground />
-        </Suspense>
-      ) : null}
+      <SpiralRuntime />
 
       <Navbar />
 
