@@ -6,7 +6,7 @@
 
 ## FINAL POLISH progress
 
-> react-icons NOT installed (not in node_modules or package.json). All icons implemented with lucide-react (already installed). The owner must run `npm install react-icons` before the react-icons imports will work; until then all icons use lucide equivalents. Noted per-item below.
+> `react-icons` (`^5.7.0`) is installed and wired up via `react-icons/fa6` in `BrandIcon.tsx`, `ProjectCaseStudy.tsx`, `PublicationsSection.tsx`, and `CertificationRow.tsx` (`lucide-react` used only for non-brand UI icons such as `Globe`, `Link`, `Mail`, `Phone`, `Menu`, `ArrowRight`, etc.).
 
 | Item | Status | Files |
 |------|--------|-------|
