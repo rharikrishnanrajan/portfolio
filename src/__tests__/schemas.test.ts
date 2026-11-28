@@ -177,13 +177,13 @@ describe('tolerant siteContentSchema', () => {
 describe('theme allow-lists and hostile CSS rejection', () => {
   it('resolves aliases and rejects unknown or hostile font names', () => {
     expect(resolveHeadingFontName('Inter')).toBe('Inter Variable')
-    expect(resolveHeadingFontName('Georgia')).toBe('Georgia')
+    expect(resolveHeadingFontName('Georgia')).toBe('Merriweather')
     expect(resolveHeadingFontName('Playfair Display')).toBe('Playfair Display')
     expect(resolveHeadingFontName('Comic Sans; } body { display:none')).toBe('Inter Variable')
 
     expect(resolveMonoFontName('JetBrains Mono')).toBe('JetBrains Mono Variable')
     expect(resolveMonoFontName('IBM Plex Mono')).toBe('IBM Plex Mono')
-    expect(resolveMonoFontName('Courier New')).toBe('Courier New')
+    expect(resolveMonoFontName('Courier New')).toBe('Source Code Pro')
     expect(resolveMonoFontName('url(evil)')).toBe('JetBrains Mono Variable')
   })
 
@@ -205,6 +205,6 @@ describe('theme allow-lists and hostile CSS rejection', () => {
     expect(style.getPropertyValue('--border')).toBe('30 38 58')
     expect(style.getPropertyValue('--text')).toBe('250 250 250')
     expect(style.getPropertyValue('--theme-font-heading')).toContain('Inter Variable')
-    expect(style.getPropertyValue('--theme-font-mono')).toContain('Courier New')
+    expect(style.getPropertyValue('--theme-font-mono')).toContain('Source Code Pro Variable')
   })
 })

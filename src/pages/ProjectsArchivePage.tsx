@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Fragment, useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { SectionHeader } from '../components/SectionHeader'
@@ -42,12 +42,12 @@ export function ProjectsArchivePage() {
         {content.projects.length > 0 ? (
           <div className="divide-y divide-line">
             {content.projects.map((project, idx) => (
-              <>
-                <ProjectCaseStudy key={project.id} project={project} index={idx} />
+              <Fragment key={project.id}>
+                <ProjectCaseStudy project={project} index={idx} />
                 {project.cover_url && (
-                  <ProjectCover key={`cover-${project.id}`} project={project} variant="cropped" />
+                  <ProjectCover project={project} variant="cropped" />
                 )}
-              </>
+              </Fragment>
             ))}
           </div>
         ) : (

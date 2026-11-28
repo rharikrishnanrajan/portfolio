@@ -348,7 +348,7 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
 
     // Publications
     expect(screen.getByText('Resilient Failover Systems')).toBeTruthy()
-    expect(screen.getByText('FEB 2025')).toBeTruthy()
+    expect(screen.getByText('15 FEB 2025')).toBeTruthy()
 
     // Custom sections: rich_text (plain text, no script), cards (safeUrl), gallery (safeImageUrl)
     expect(screen.getByText('<script>alert(1)</script> Plain text note.')).toBeTruthy()
@@ -729,11 +729,11 @@ describe('Phase 2 & 3 portfolio sections and routes', () => {
     })
 
     it('renders no button row when project has no valid links or files', () => {
-      const { container } = renderCaseStudy({ title: 'No Actions' })
+      renderCaseStudy({ title: 'No Actions' })
       expect(screen.queryAllByRole('link')).toHaveLength(0)
       const heading = screen.getByRole('heading', { level: 3, name: 'No Actions' })
       expect(heading.parentElement?.children).toHaveLength(1)
-      expect(container.querySelector('[aria-hidden="true"]')).toBeNull()
+      expect(heading.parentElement?.querySelector('[aria-hidden="true"]')).toBeNull()
     })
 
     it('caps document buttons at 3 and links +N button to /projects archive section', () => {

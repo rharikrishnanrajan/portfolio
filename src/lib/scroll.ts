@@ -17,7 +17,10 @@ export function initScrollProgress(callback: (progress: number) => void): () => 
   const handleScroll = () => {
     if (scrollProgressRAF !== null) return
 
+    let ranSync = false
     scrollProgressRAF = requestAnimationFrame(() => {
+      ranSync = true
+      scrollProgressRAF = null
       const scrollTop = window.scrollY
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
       const progress = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0
@@ -27,9 +30,10 @@ export function initScrollProgress(callback: (progress: number) => void): () => 
 
       // Call React callback if provided (for back-to-top visibility)
       scrollProgressCallback?.(progress)
-
-      scrollProgressRAF = null
     })
+    if (ranSync) {
+      scrollProgressRAF = null
+    }
   }
 
   window.addEventListener('scroll', handleScroll, { passive: true })
